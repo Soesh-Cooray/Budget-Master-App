@@ -514,17 +514,27 @@ function DebtPage() {
 	};
 
 	return (
-		<Container maxWidth="xl" sx={{ py: 4, minHeight: '100vh' }}>
+		<Container
+			maxWidth="xl"
+			sx={{
+				py: { xs: 2, sm: 3, md: 4 },
+				px: { xs: 1.5, sm: 2, md: 3 },
+				minHeight: '100vh',
+				maxWidth: '100%',
+				overflowX: 'hidden',
+				boxSizing: 'border-box',
+			}}
+		>
 			{/* Page Header */}
 			<Box
 				display="flex"
 				justifyContent="space-between"
-				alignItems="center"
-				mb={4}
-				flexWrap="wrap"
+				alignItems={{ xs: 'flex-start', sm: 'center' }}
+				flexDirection={{ xs: 'column', sm: 'row' }}
+				mb={3.5}
 				gap={2}
 				sx={{
-					p: { xs: 2.5, md: 3.5 },
+					p: { xs: 2, sm: 2.5, md: 3.5 },
 					borderRadius: 4,
 					border: `1px solid ${theme.palette.divider}`,
 					background: theme.palette.mode === 'dark'
@@ -533,11 +543,21 @@ function DebtPage() {
 					boxShadow: theme.palette.mode === 'dark'
 						? '0 12px 30px rgba(0,0,0,0.4)'
 						: '0 12px 28px rgba(34, 67, 115, 0.08)',
+					width: '100%',
+					boxSizing: 'border-box',
 				}}
 			>
-				<Box>
-					<Box display="flex" alignItems="center" gap={1.5} mb={0.5}>
-						<Typography variant="h4" sx={{ fontWeight: 800, color: theme.palette.text.primary }}>
+				<Box sx={{ minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+					<Box display="flex" alignItems="center" flexWrap="wrap" gap={1} mb={0.5}>
+						<Typography
+							variant="h4"
+							sx={{
+								fontWeight: 800,
+								fontSize: { xs: '1.5rem', sm: '1.875rem', md: '2.125rem' },
+								color: theme.palette.text.primary,
+								wordBreak: 'break-word',
+							}}
+						>
 							Debt Management
 						</Typography>
 						<Chip
@@ -548,7 +568,7 @@ function DebtPage() {
 							sx={{ fontWeight: 600, borderRadius: 1.5 }}
 						/>
 					</Box>
-					<Typography variant="body1" color="text.secondary">
+					<Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-word' }}>
 						Track loans, receivables, repayments, and complete change audit histories.
 					</Typography>
 				</Box>
@@ -559,13 +579,15 @@ function DebtPage() {
 					onClick={openCreateDialog}
 					sx={{
 						borderRadius: 3,
-						px: 3.5,
-						py: 1.4,
+						px: 3,
+						py: 1.2,
 						fontWeight: 700,
 						fontSize: '0.95rem',
 						background: 'linear-gradient(135deg, #16a34a, #0d9488)',
 						boxShadow: '0 4px 16px rgba(22, 163, 74, 0.35)',
 						textTransform: 'none',
+						width: { xs: '100%', sm: 'auto' },
+						flexShrink: 0,
 						transition: 'all 0.25s ease',
 						'&:hover': {
 							background: 'linear-gradient(135deg, #15803d, #0f766e)',
@@ -579,25 +601,27 @@ function DebtPage() {
 			</Box>
 
 			{/* Metric Summary Cards */}
-			<Grid container spacing={2.5} sx={{ mb: 4 }}>
-				{/* I Owe */}
-				<Grid item xs={12} sm={6} lg={3}>
-					<Paper
-						sx={{
-							p: 2.8,
-							borderRadius: 3.5,
-							height: '100%',
-							border: `1px solid ${theme.palette.divider}`,
-							background: theme.palette.mode === 'dark'
-								? 'linear-gradient(145deg, rgba(239, 68, 68, 0.1), rgba(15, 23, 42, 0.4))'
-								: 'linear-gradient(145deg, #fff5f5, #ffffff)',
-							boxShadow: theme.palette.mode === 'dark'
-								? '0 8px 24px rgba(0,0,0,0.35)'
-								: '0 8px 20px rgba(239, 68, 68, 0.08)',
-							position: 'relative',
-							overflow: 'hidden',
-						}}
-					>
+			<Box sx={{ width: '100%', overflow: 'hidden', mb: 3.5 }}>
+				<Grid container spacing={{ xs: 1.5, sm: 2, lg: 2.5 }}>
+					{/* I Owe */}
+					<Grid item xs={12} sm={6} lg={3}>
+						<Paper
+							sx={{
+								p: { xs: 2, sm: 2.5, md: 2.8 },
+								borderRadius: 3.5,
+								height: '100%',
+								border: `1px solid ${theme.palette.divider}`,
+								background: theme.palette.mode === 'dark'
+									? 'linear-gradient(145deg, rgba(239, 68, 68, 0.1), rgba(15, 23, 42, 0.4))'
+									: 'linear-gradient(145deg, #fff5f5, #ffffff)',
+								boxShadow: theme.palette.mode === 'dark'
+									? '0 8px 24px rgba(0,0,0,0.35)'
+									: '0 8px 20px rgba(239, 68, 68, 0.08)',
+								position: 'relative',
+								overflow: 'hidden',
+								boxSizing: 'border-box',
+							}}
+						>
 						<Box display="flex" justifyContent="space-between" alignItems="flex-start">
 							<Box>
 								<Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -752,20 +776,24 @@ function DebtPage() {
 					</Paper>
 				</Grid>
 			</Grid>
+		</Box>
 
 			{/* Filter, Search & Sorting Bar */}
 			<Paper
 				sx={{
-					p: 2.5,
+					p: { xs: 2, sm: 2.5 },
 					mb: 3.5,
 					borderRadius: 3.5,
 					border: `1px solid ${theme.palette.divider}`,
 					boxShadow: theme.palette.mode === 'dark'
 						? '0 6px 20px rgba(0,0,0,0.3)'
 						: '0 6px 18px rgba(34, 67, 115, 0.05)',
+					width: '100%',
+					boxSizing: 'border-box',
+					overflow: 'hidden',
 				}}
 			>
-				<Grid container spacing={2} alignItems="center">
+				<Grid container spacing={1.5} alignItems="center">
 					{/* Search input */}
 					<Grid item xs={12} md={5}>
 						<TextField
@@ -794,7 +822,7 @@ function DebtPage() {
 
 					{/* Type Filter Chips */}
 					<Grid item xs={12} md={5}>
-						<Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+						<Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap sx={{ maxWidth: '100%' }}>
 							{[
 								{ id: 'all', label: 'All' },
 								{ id: 'i_owe', label: 'I Owe' },
@@ -861,6 +889,9 @@ function DebtPage() {
 							? 'rgba(255, 255, 255, 0.02)'
 							: 'rgba(255, 255, 255, 0.6)',
 						boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
+						width: '100%',
+						boxSizing: 'border-box',
+						overflow: 'hidden',
 					}}
 				>
 					<Stack spacing={2} alignItems="center" maxWidth={420} mx="auto">
@@ -897,7 +928,7 @@ function DebtPage() {
 				</Paper>
 			) : isMobile ? (
 				/* Mobile View: Enhanced Glassmorphic Cards */
-				<Stack spacing={2.5}>
+				<Stack spacing={2} sx={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
 					{filteredDebts.map((debt) => {
 						const remaining = Math.max(debt.totalAmount - debt.paidAmount, 0);
 						const percentPaid = debt.totalAmount > 0 ? Math.min((debt.paidAmount / debt.totalAmount) * 100, 100) : 0;
@@ -908,7 +939,7 @@ function DebtPage() {
 							<Paper
 								key={debt.id}
 								sx={{
-									p: 2.5,
+									p: { xs: 2, sm: 2.5 },
 									borderRadius: 3.5,
 									border: `1px solid ${theme.palette.divider}`,
 									background: theme.palette.mode === 'dark'
@@ -917,23 +948,26 @@ function DebtPage() {
 									boxShadow: theme.palette.mode === 'dark'
 										? '0 10px 24px rgba(0,0,0,0.35)'
 										: '0 8px 22px rgba(34, 67, 115, 0.08)',
-									transition: 'transform 0.2s ease',
+									width: '100%',
+									maxWidth: '100%',
+									boxSizing: 'border-box',
+									overflow: 'hidden',
 								}}
 							>
 								{/* Header row: title + remaining amount */}
-								<Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1}>
-									<Box sx={{ pr: 1 }}>
-										<Typography variant="h6" sx={{ fontWeight: 800, lineHeight: 1.3 }}>
+								<Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1} gap={1}>
+									<Box sx={{ pr: 1, minWidth: 0, flex: 1 }}>
+										<Typography variant="h6" sx={{ fontWeight: 800, lineHeight: 1.3, wordBreak: 'break-word' }}>
 											{debt.title}
 										</Typography>
 										<Box display="flex" alignItems="center" gap={0.5} mt={0.3}>
-											<PersonOutlineIcon fontSize="small" sx={{ color: 'text.secondary', fontSize: 16 }} />
-											<Typography variant="body2" color="text.secondary" fontWeight={500}>
+											<PersonOutlineIcon fontSize="small" sx={{ color: 'text.secondary', fontSize: 16, flexShrink: 0 }} />
+											<Typography variant="body2" color="text.secondary" fontWeight={500} sx={{ wordBreak: 'break-word' }}>
 												{debt.person}
 											</Typography>
 										</Box>
 									</Box>
-									<Box textAlign="right">
+									<Box textAlign="right" sx={{ flexShrink: 0 }}>
 										<Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
 											Remaining
 										</Typography>
@@ -942,6 +976,7 @@ function DebtPage() {
 											sx={{
 												fontWeight: 800,
 												color: debt.type === 'i_owe' ? '#ef4444' : '#10b981',
+												whiteSpace: 'nowrap',
 											}}
 										>
 											{currencySymbol}{remaining.toFixed(2)}
@@ -950,7 +985,7 @@ function DebtPage() {
 								</Box>
 
 								{/* Chips row: Type, Status, Due date */}
-								<Box display="flex" alignItems="center" flexWrap="wrap" gap={1} mb={2} mt={1}>
+								<Box display="flex" alignItems="center" flexWrap="wrap" gap={0.75} mb={2} mt={1} sx={{ maxWidth: '100%' }}>
 									<Chip
 										label={debt.type === 'i_owe' ? 'I Owe' : 'Owed To Me'}
 										size="small"
@@ -978,7 +1013,7 @@ function DebtPage() {
 
 								{/* Progress Bar & Amounts */}
 								<Box mb={2}>
-									<Box display="flex" justifyContent="space-between" mb={0.5}>
+									<Box display="flex" justifyContent="space-between" flexWrap="wrap" gap={0.5} mb={0.5}>
 										<Typography variant="caption" color="text.secondary">
 											Paid: <strong>{currencySymbol}{debt.paidAmount.toFixed(2)}</strong> ({percentPaid.toFixed(1)}%)
 										</Typography>
@@ -1012,10 +1047,12 @@ function DebtPage() {
 											borderRadius: 2,
 											bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
 											borderLeft: `3px solid ${theme.palette.primary.main}`,
+											overflow: 'hidden',
+											wordBreak: 'break-word',
 										}}
 									>
 										<Box display="flex" alignItems="center" gap={0.5} mb={0.5}>
-											<NotesIcon fontSize="small" sx={{ fontSize: 16, color: 'text.secondary' }} />
+											<NotesIcon fontSize="small" sx={{ fontSize: 16, color: 'text.secondary', flexShrink: 0 }} />
 											<Typography variant="caption" fontWeight={700} color="text.secondary">
 												Notes:
 											</Typography>
@@ -1028,15 +1065,15 @@ function DebtPage() {
 
 								{/* Footer row: Date Created & Actions */}
 								<Divider sx={{ my: 1.5 }} />
-								<Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
-									<Box display="flex" alignItems="center" gap={0.5}>
-										<AccessTimeIcon sx={{ fontSize: 15, color: 'text.secondary' }} />
-										<Typography variant="caption" color="text.secondary">
+								<Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1.5}>
+									<Box display="flex" alignItems="center" gap={0.5} sx={{ minWidth: 0 }}>
+										<AccessTimeIcon sx={{ fontSize: 15, color: 'text.secondary', flexShrink: 0 }} />
+										<Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
 											Created: {formatDate(debt.createdAt)}
 										</Typography>
 									</Box>
 
-									<Box display="flex" alignItems="center" gap={1}>
+									<Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
 										{remaining > 0 && (
 											<Button
 												size="small"

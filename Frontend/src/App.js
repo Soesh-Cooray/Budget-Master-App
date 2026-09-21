@@ -72,7 +72,8 @@ function App() {
                 width: '100%',
                 height: 'auto',
                 minHeight: '100vh',
-                overflow: 'auto',
+                overflowX: 'hidden',
+                overflowY: 'auto',
             }}>
                 {showSidebar && (
                     <Sidebar open={open} onClose={handleDrawerToggle} />
@@ -82,6 +83,10 @@ function App() {
                     component="main"
                     sx={{
                         flexGrow: 1,
+                        minWidth: 0,
+                        maxWidth: showSidebar ?
+                            `calc(100% - ${open ? DRAWER_WIDTH : COLLAPSED_WIDTH}px)` :
+                            '100%',
                         width: showSidebar ?
                             `calc(100% - ${open ? DRAWER_WIDTH : COLLAPSED_WIDTH}px)` :
                             '100%',
@@ -94,7 +99,7 @@ function App() {
                                 duration: theme.transitions.duration.standard,
                             }),
                         padding: 0,
-                        overflow: 'visible',
+                        overflowX: 'hidden',
                     }}
                 >
                     <Routes>

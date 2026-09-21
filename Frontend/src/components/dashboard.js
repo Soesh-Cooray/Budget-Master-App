@@ -119,17 +119,20 @@ const BudgetProgressCard = ({ name, spent, amount, remaining, percent, currencyS
   const theme = useTheme();
   return (
     <Card sx={{
-      p: 3,
+      p: { xs: 2, sm: 2.5 },
       borderRadius: 3,
       boxShadow: theme.palette.mode === 'dark' ? '0 2px 10px rgba(0, 0, 0, 0.2)' : '0 2px 10px rgba(0,0,0,0.05)',
       mb: 2,
-      minWidth: 320,
+      width: '100%',
+      maxWidth: '100%',
+      boxSizing: 'border-box',
+      overflow: 'hidden',
       backgroundColor: theme.palette.background.paper,
     }}>
-      <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1, color: theme.palette.text.primary }}>{name}</Typography>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-        <Typography sx={{ fontWeight: 500, color: theme.palette.text.primary }}>{currencySymbol}{spent.toFixed(2)}</Typography>
-        <Typography sx={{ fontWeight: 500, color: theme.palette.text.primary }}>of {currencySymbol}{Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Typography>
+      <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1, color: theme.palette.text.primary, wordBreak: 'break-word' }}>{name}</Typography>
+      <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={0.5} mb={1}>
+        <Typography sx={{ fontWeight: 500, color: theme.palette.text.primary, whiteSpace: 'nowrap' }}>{currencySymbol}{spent.toFixed(2)}</Typography>
+        <Typography sx={{ fontWeight: 500, color: theme.palette.text.primary, whiteSpace: 'nowrap' }}>of {currencySymbol}{Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Typography>
       </Box>
       <LinearProgress
         variant="determinate"
@@ -141,9 +144,9 @@ const BudgetProgressCard = ({ name, spent, amount, remaining, percent, currencyS
           mb: 1
         }}
       />
-      <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Typography variant="body2" color="textSecondary">Remaining: {currencySymbol}{Number(remaining).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Typography>
-        <Typography variant="body2" color="textSecondary">{percent.toFixed(0)}%</Typography>
+      <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={0.5}>
+        <Typography variant="body2" color="textSecondary" sx={{ whiteSpace: 'nowrap' }}>Remaining: {currencySymbol}{Number(remaining).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Typography>
+        <Typography variant="body2" color="textSecondary" sx={{ whiteSpace: 'nowrap' }}>{percent.toFixed(0)}%</Typography>
       </Box>
     </Card>
   );
@@ -153,21 +156,24 @@ const SavingsGoalCard = ({ title, categoryName, currentAmount, targetAmount, rem
   const theme = useTheme();
   return (
     <Card sx={{
-      p: 3,
+      p: { xs: 2, sm: 2.5 },
       borderRadius: 3,
       boxShadow: theme.palette.mode === 'dark' ? '0 2px 10px rgba(0, 0, 0, 0.2)' : '0 2px 10px rgba(0,0,0,0.05)',
       mb: 2,
-      minWidth: 320,
+      width: '100%',
+      maxWidth: '100%',
+      boxSizing: 'border-box',
+      overflow: 'hidden',
       backgroundColor: theme.palette.background.paper,
     }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-        <Typography variant="h6" sx={{ fontWeight: 'bold', color: theme.palette.text.primary }}>{title}</Typography>
-        <FlagIcon sx={{ color: theme.palette.text.secondary }} />
+        <Typography variant="h6" sx={{ fontWeight: 'bold', color: theme.palette.text.primary, wordBreak: 'break-word', minWidth: 0, pr: 1 }}>{title}</Typography>
+        <FlagIcon sx={{ color: theme.palette.text.secondary, flexShrink: 0 }} />
       </Box>
-      <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>{categoryName}</Typography>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-        <Typography sx={{ fontWeight: 500, color: theme.palette.text.primary }}>{currencySymbol}{currentAmount.toFixed(2)}</Typography>
-        <Typography sx={{ fontWeight: 500, color: theme.palette.text.primary }}>of {currencySymbol}{targetAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Typography>
+      <Typography variant="body2" color="textSecondary" sx={{ mb: 1, wordBreak: 'break-word' }}>{categoryName}</Typography>
+      <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={0.5} mb={1}>
+        <Typography sx={{ fontWeight: 500, color: theme.palette.text.primary, whiteSpace: 'nowrap' }}>{currencySymbol}{currentAmount.toFixed(2)}</Typography>
+        <Typography sx={{ fontWeight: 500, color: theme.palette.text.primary, whiteSpace: 'nowrap' }}>of {currencySymbol}{targetAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Typography>
       </Box>
       <LinearProgress
         variant="determinate"
@@ -179,9 +185,9 @@ const SavingsGoalCard = ({ title, categoryName, currentAmount, targetAmount, rem
           mb: 1
         }}
       />
-      <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Typography variant="body2" color="textSecondary">Remaining: {currencySymbol}{remaining.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Typography>
-        <Typography variant="body2" color="textSecondary">{percent.toFixed(0)}%</Typography>
+      <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={0.5}>
+        <Typography variant="body2" color="textSecondary" sx={{ whiteSpace: 'nowrap' }}>Remaining: {currencySymbol}{remaining.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Typography>
+        <Typography variant="body2" color="textSecondary" sx={{ whiteSpace: 'nowrap' }}>{percent.toFixed(0)}%</Typography>
       </Box>
     </Card>
   );
@@ -478,11 +484,18 @@ const Dashboard = () => {
   }
 
   return (
-    <Box sx={{ p: 3, minHeight: '100vh', bgcolor: theme.palette.background.default }}>
-      <Typography variant="h4" fontWeight="bold" sx={{ mb: 0.5, color: theme.palette.text.primary }}>
+    <Box sx={{
+      p: { xs: 1.5, sm: 2.5, md: 3 },
+      minHeight: '100vh',
+      maxWidth: '100%',
+      overflowX: 'hidden',
+      boxSizing: 'border-box',
+      bgcolor: theme.palette.background.default
+    }}>
+      <Typography variant="h4" fontWeight="bold" sx={{ mb: 0.5, color: theme.palette.text.primary, fontSize: { xs: '1.5rem', sm: '1.875rem', md: '2.125rem' }, wordBreak: 'break-word' }}>
         {firstName ? `${getGreeting()}, ${firstName}` : (username ? `${getGreeting()}, ${username}` : getGreeting())}
       </Typography>
-      <Typography variant="body1" color="textSecondary" sx={{ mb: 2 }}>
+      <Typography variant="body1" color="textSecondary" sx={{ mb: 2, wordBreak: 'break-word' }}>
         Here's an overview of your finances
       </Typography>
 
@@ -490,9 +503,12 @@ const Dashboard = () => {
       <Paper
         elevation={0}
         sx={{
-          mb: 4,
-          p: 3,
-          borderRadius: 2,
+          mb: 3.5,
+          p: { xs: 2, sm: 2.5 },
+          borderRadius: 2.5,
+          width: '100%',
+          boxSizing: 'border-box',
+          overflow: 'hidden',
           backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
           border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'}`,
         }}
@@ -501,11 +517,12 @@ const Dashboard = () => {
           <Box sx={{
             display: 'flex',
             flexDirection: { xs: 'column', sm: 'row' },
-            gap: 2,
+            gap: 1.5,
             alignItems: { xs: 'stretch', sm: 'center' },
+            width: '100%',
             '& .MuiTextField-root': {
               backgroundColor: theme.palette.background.paper,
-              borderRadius: 1,
+              borderRadius: 1.5,
               width: { xs: '100%', sm: '200px' }
             }
           }}>
@@ -541,278 +558,325 @@ const Dashboard = () => {
       </Paper>
 
       {/* Stat Cards */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={3}>
-          <StatCard>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: 350, alignItems: 'center', mb: 1 }}>
-              <Typography variant="subtitle2" color="textSecondary">Current Balance</Typography>
-              <AccountBalanceWalletIcon sx={{ color: theme.palette.mode === 'dark' ? '#F7FDFF' : '#000000' }} />
-            </Box>
-            <StatValue>{currencySymbol}{financialData.currentBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</StatValue>
-            <StatLabel>Total balance across all accounts</StatLabel>
-          </StatCard>
+      <Box sx={{ width: '100%', overflow: 'hidden', mb: 3 }}>
+        <Grid container spacing={{ xs: 1.5, sm: 2 }}>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard sx={{ p: { xs: 2, sm: 2.5 }, width: '100%', boxSizing: 'border-box' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', mb: 1 }}>
+                <Typography variant="subtitle2" color="textSecondary">Current Balance</Typography>
+                <AccountBalanceWalletIcon sx={{ color: theme.palette.mode === 'dark' ? '#F7FDFF' : '#000000' }} />
+              </Box>
+              <StatValue sx={{ wordBreak: 'break-word', fontSize: { xs: '1.5rem', sm: '1.75rem' } }}>{currencySymbol}{financialData.currentBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</StatValue>
+              <StatLabel>Total balance across all accounts</StatLabel>
+            </StatCard>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard sx={{ p: { xs: 2, sm: 2.5 }, width: '100%', boxSizing: 'border-box' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', mb: 1 }}>
+                <Typography variant="subtitle2" color="textSecondary">Total Income</Typography>
+                <ArrowCircleUpIcon sx={{ color: theme.palette.mode === 'dark' ? '#81c784' : '#2eb432' }} />
+              </Box>
+              <StatValue sx={{ color: theme.palette.mode === 'dark' ? '#81c784' : '#4caf50', wordBreak: 'break-word', fontSize: { xs: '1.5rem', sm: '1.75rem' } }}>
+                {currencySymbol}{financialData.totalIncome.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              </StatValue>
+              <StatLabel>Total income this period</StatLabel>
+            </StatCard>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard sx={{ p: { xs: 2, sm: 2.5 }, width: '100%', boxSizing: 'border-box' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', mb: 1 }}>
+                <Typography variant="subtitle2" color="textSecondary">Total Expenses</Typography>
+                <ArrowCircleDownIcon sx={{ color: theme.palette.mode === 'dark' ? '#e57373' : '#f44336' }} />
+              </Box>
+              <StatValue sx={{ color: theme.palette.mode === 'dark' ? '#e57373' : '#f44336', wordBreak: 'break-word', fontSize: { xs: '1.5rem', sm: '1.75rem' } }}>
+                {currencySymbol}{financialData.totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              </StatValue>
+              <StatLabel>Total expenses this period</StatLabel>
+            </StatCard>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard sx={{ p: { xs: 2, sm: 2.5 }, width: '100%', boxSizing: 'border-box' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', mb: 1 }}>
+                <Typography variant="subtitle2" color="textSecondary">Total Savings</Typography>
+                <SavingsSharpIcon sx={{ color: theme.palette.mode === 'dark' ? '#7986cb' : '#3949ab' }} />
+              </Box>
+              <StatValue sx={{ color: theme.palette.mode === 'dark' ? '#7986cb' : '#3949ab', wordBreak: 'break-word', fontSize: { xs: '1.5rem', sm: '1.75rem' } }}>
+                {currencySymbol}{financialData.totalSavings?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              </StatValue>
+              <StatLabel>Total savings this period</StatLabel>
+            </StatCard>
+          </Grid>
         </Grid>
-        <Grid item xs={12} md={3}>
-          <StatCard>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: 350, alignItems: 'center', mb: 1 }}>
-              <Typography variant="subtitle2" color="textSecondary">Total Income</Typography>
-              <ArrowCircleUpIcon sx={{ color: theme.palette.mode === 'dark' ? '#81c784' : '#2eb432' }} />
-            </Box>
-            <StatValue sx={{ color: theme.palette.mode === 'dark' ? '#81c784' : '#4caf50' }}>
-              {currencySymbol}{financialData.totalIncome.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-            </StatValue>
-            <StatLabel>Total income this period</StatLabel>
-          </StatCard>
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <StatCard>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: 350, alignItems: 'center', mb: 1 }}>
-              <Typography variant="subtitle2" color="textSecondary">Total Expenses</Typography>
-              <ArrowCircleDownIcon sx={{ color: theme.palette.mode === 'dark' ? '#e57373' : '#f44336' }} />
-            </Box>
-            <StatValue sx={{ color: theme.palette.mode === 'dark' ? '#e57373' : '#f44336' }}>
-              {currencySymbol}{financialData.totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-            </StatValue>
-            <StatLabel>Total expenses this period</StatLabel>
-          </StatCard>
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <StatCard>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: 350, alignItems: 'center', mb: 1 }}>
-              <Typography variant="subtitle2" color="textSecondary">Total Savings</Typography>
-              <SavingsSharpIcon sx={{ color: theme.palette.mode === 'dark' ? '#7986cb' : '#3949ab' }} />
-            </Box>
-            <StatValue sx={{ color: theme.palette.mode === 'dark' ? '#7986cb' : '#3949ab' }}>
-              {currencySymbol}{financialData.totalSavings?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-            </StatValue>
-            <StatLabel>Total savings this period</StatLabel>
-          </StatCard>
-        </Grid>
-      </Grid>
+      </Box>
 
       {/* Charts */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={6}>
-          <StyledPaper sx={{ width: '100%' }}>
-            <Typography variant="h6" sx={{ mb: 0.5, color: theme.palette.text.primary }}>Income vs Expenses</Typography>
-            <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>Your financial balance over time</Typography>
-            <Box sx={{ height: 400, width: '100%' }}>
-              <Bar
-                data={{
-                  labels: financialData.incomeVsExpenses.labels,
-                  datasets: [
-                    {
-                      label: 'Income',
-                      data: financialData.incomeVsExpenses.income,
-                      backgroundColor: theme.palette.mode === 'dark' ? '#81c784' : '#4caf50',
-                      barThickness: 30,
-                    },
-                    {
-                      label: 'Expenses',
-                      data: financialData.incomeVsExpenses.expenses,
-                      backgroundColor: theme.palette.mode === 'dark' ? '#e57373' : '#f44336',
-                      barThickness: 30,
-                    },
-                  ],
-                }}
-                options={{
-                  ...barChartOptions,
-                  scales: {
-                    ...barChartOptions.scales,
-                    y: {
-                      ...barChartOptions.scales.y,
-                      grid: {
-                        ...barChartOptions.scales.y.grid,
-                        color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : '#f0f0f0',
+      <Box sx={{ width: '100%', overflow: 'hidden', mb: 3 }}>
+        <Grid container spacing={{ xs: 1.5, sm: 2 }}>
+          <Grid item xs={12} sm={6} md={6}>
+            <StyledPaper sx={{ p: { xs: 2, sm: 2.5 }, width: '100%', overflow: 'hidden', boxSizing: 'border-box' }}>
+              <Typography variant="h6" sx={{ mb: 0.5, color: theme.palette.text.primary }}>Income vs Expenses</Typography>
+              <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>Your financial balance over time</Typography>
+              <Box sx={{ height: { xs: 280, sm: 380 }, width: '100%', maxWidth: '100%' }}>
+                <Bar
+                  data={{
+                    labels: financialData.incomeVsExpenses.labels,
+                    datasets: [
+                      {
+                        label: 'Income',
+                        data: financialData.incomeVsExpenses.income,
+                        backgroundColor: theme.palette.mode === 'dark' ? '#81c784' : '#4caf50',
+                        barThickness: 30,
                       },
-                      ticks: {
-                        ...barChartOptions.scales.y.ticks,
-                        color: theme.palette.text.secondary,
+                      {
+                        label: 'Expenses',
+                        data: financialData.incomeVsExpenses.expenses,
+                        backgroundColor: theme.palette.mode === 'dark' ? '#e57373' : '#f44336',
+                        barThickness: 30,
                       },
-                    },
-                    x: {
-                      ...barChartOptions.scales.x,
-                      ticks: {
-                        color: theme.palette.text.secondary,
+                    ],
+                  }}
+                  options={{
+                    ...barChartOptions,
+                    maintainAspectRatio: false,
+                    scales: {
+                      ...barChartOptions.scales,
+                      y: {
+                        ...barChartOptions.scales.y,
+                        grid: {
+                          ...barChartOptions.scales.y.grid,
+                          color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : '#f0f0f0',
+                        },
+                        ticks: {
+                          ...barChartOptions.scales.y.ticks,
+                          color: theme.palette.text.secondary,
+                        },
                       },
-                    },
-                  },
-                  plugins: {
-                    ...barChartOptions.plugins,
-                    legend: {
-                      ...barChartOptions.plugins.legend,
-                      labels: {
-                        ...barChartOptions.plugins.legend.labels,
-                        color: theme.palette.text.secondary,
+                      x: {
+                        ...barChartOptions.scales.x,
+                        ticks: {
+                          color: theme.palette.text.secondary,
+                        },
                       },
                     },
-                  },
-                }}
-              />
-            </Box>
-          </StyledPaper>
-        </Grid>
-        <Grid item xs={12} sm={6} md={6}>
-          <StyledPaper sx={{ width: '100%' }}>
-            <Typography variant="h6" sx={{ mb: 0.5, color: theme.palette.text.primary }}>Expense Breakdown</Typography>
-            <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>Your spending by category</Typography>
-            <Box sx={{ height: 400, width: '100%', display: 'flex', justifyContent: 'center', mx: 'auto' }}>
-              <Doughnut
-                data={{
-                  labels: financialData.expenseBreakdown.labels,
-                  datasets: [{
-                    data: financialData.expenseBreakdown.values,
-                    backgroundColor: financialData.expenseBreakdown.colors,
-                    borderWidth: 0,
-                    cutout: '70%',
-                  }],
-                }}
-                options={{
-                  ...doughnutChartOptions,
-                  plugins: {
-                    ...doughnutChartOptions.plugins,
-                    tooltip: {
-                      ...doughnutChartOptions.plugins.tooltip,
-                      titleColor: theme.palette.text.primary,
-                      bodyColor: theme.palette.text.secondary,
-                      backgroundColor: theme.palette.background.paper,
-                      borderColor: theme.palette.divider,
-                      borderWidth: 1,
+                    plugins: {
+                      ...barChartOptions.plugins,
+                      legend: {
+                        ...barChartOptions.plugins.legend,
+                        labels: {
+                          ...barChartOptions.plugins.legend.labels,
+                          color: theme.palette.text.secondary,
+                        },
+                      },
                     },
-                  },
-                }}
-              />
-            </Box>
-            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', mt: 2, pb: 2 }}>
-              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
-                {financialData.expenseBreakdown.labels.map((label, index) => (
-                  <Box key={label} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: financialData.expenseBreakdown.colors[index] }} />
-                    <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
-                      {label} {financialData.expenseBreakdown.percentages[index]}%
-                    </Typography>
-                  </Box>
-                ))}
+                  }}
+                />
               </Box>
-            </Box>
-          </StyledPaper>
+            </StyledPaper>
+          </Grid>
+          <Grid item xs={12} sm={6} md={6}>
+            <StyledPaper sx={{ p: { xs: 2, sm: 2.5 }, width: '100%', overflow: 'hidden', boxSizing: 'border-box' }}>
+              <Typography variant="h6" sx={{ mb: 0.5, color: theme.palette.text.primary }}>Expense Breakdown</Typography>
+              <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>Your spending by category</Typography>
+              <Box sx={{ height: { xs: 260, sm: 340 }, width: '100%', maxWidth: '100%', display: 'flex', justifyContent: 'center', mx: 'auto' }}>
+                <Doughnut
+                  data={{
+                    labels: financialData.expenseBreakdown.labels,
+                    datasets: [{
+                      data: financialData.expenseBreakdown.values,
+                      backgroundColor: financialData.expenseBreakdown.colors,
+                      borderWidth: 0,
+                      cutout: '70%',
+                    }],
+                  }}
+                  options={{
+                    ...doughnutChartOptions,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      ...doughnutChartOptions.plugins,
+                      tooltip: {
+                        ...doughnutChartOptions.plugins.tooltip,
+                        titleColor: theme.palette.text.primary,
+                        bodyColor: theme.palette.text.secondary,
+                        backgroundColor: theme.palette.background.paper,
+                        borderColor: theme.palette.divider,
+                        borderWidth: 1,
+                      },
+                    },
+                  }}
+                />
+              </Box>
+              <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', mt: 2, pb: 1 }}>
+                <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', justifyContent: 'center' }}>
+                  {financialData.expenseBreakdown.labels.map((label, index) => (
+                    <Box key={label} sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                      <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: financialData.expenseBreakdown.colors[index] }} />
+                      <Typography variant="caption" sx={{ color: theme.palette.text.secondary, whiteSpace: 'nowrap' }}>
+                        {label} {financialData.expenseBreakdown.percentages[index]}%
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            </StyledPaper>
+          </Grid>
         </Grid>
-      </Grid>
+      </Box>
 
       {/* Recent Transactions */}
-      <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', color: theme.palette.text.primary }}>Recent Transactions</Typography>
+      <Typography variant="h6" sx={{ mb: 1.5, fontWeight: 'bold', color: theme.palette.text.primary }}>Recent Transactions</Typography>
       <Paper sx={{
         mb: 4,
-        p: 2,
+        p: { xs: 1, sm: 2 },
+        borderRadius: 3,
+        width: '100%',
+        maxWidth: '100%',
+        boxSizing: 'border-box',
+        overflow: 'hidden',
         backgroundColor: theme.palette.background.paper,
         boxShadow: theme.palette.mode === 'dark' ? '0 2px 10px rgba(0, 0, 0, 0.2)' : '0 2px 10px rgba(0,0,0,0.05)',
       }}>
-        <List>
-          {recentTransactions.map((transaction) => (
-            <ListItem key={transaction.id} divider>
-              <Box sx={{ display: 'flex', width: '100%', alignItems: 'center' }}>
-                <Avatar sx={{
-                  bgcolor: transaction.transaction_type === 'income'
-                    ? theme.palette.mode === 'dark' ? 'rgba(129, 199, 132, 0.1)' : '#e8f5e9'
-                    : theme.palette.mode === 'dark' ? 'rgba(229, 115, 115, 0.1)' : '#ffebee',
-                  color: transaction.transaction_type === 'income'
-                    ? theme.palette.mode === 'dark' ? '#81c784' : '#4caf50'
-                    : theme.palette.mode === 'dark' ? '#e57373' : '#f44336',
-                  width: 40,
-                  height: 40,
-                  mr: 2
-                }}>
-                  {transaction.transaction_type === 'income' ? '+' : '-'}
-                </Avatar>
-                <Box sx={{ flexGrow: 1 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 'bold', color: theme.palette.text.primary }}>
-                    {transaction.description}
-                  </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                    <Typography variant="caption" color="textSecondary">{transaction.date}</Typography>
-                    <Chip
-                      label={transaction.category_name || 'Unknown'}
-                      size="small"
+        <List disablePadding>
+          {recentTransactions.map((transaction) => {
+            const isIncome = transaction.transaction_type === 'income';
+            return (
+              <ListItem
+                key={transaction.id}
+                divider
+                sx={{
+                  px: { xs: 1, sm: 2 },
+                  py: 1.25,
+                }}
+              >
+                <Box sx={{ display: 'flex', width: '100%', alignItems: 'center' }}>
+                  <Avatar sx={{
+                    bgcolor: isIncome
+                      ? theme.palette.mode === 'dark' ? 'rgba(129, 199, 132, 0.15)' : '#e8f5e9'
+                      : theme.palette.mode === 'dark' ? 'rgba(229, 115, 115, 0.15)' : '#ffebee',
+                    color: isIncome
+                      ? theme.palette.mode === 'dark' ? '#81c784' : '#2e7d32'
+                      : theme.palette.mode === 'dark' ? '#e57373' : '#d32f2f',
+                    width: 36,
+                    height: 36,
+                    mr: 1.5,
+                    flexShrink: 0,
+                    fontWeight: 700,
+                    fontSize: '1rem',
+                  }}>
+                    {isIncome ? '+' : '−'}
+                  </Avatar>
+                  <Box sx={{ flexGrow: 1, minWidth: 0, pr: 1.5 }}>
+                    <Typography
+                      variant="body2"
                       sx={{
-                        height: 20,
-                        fontSize: '0.625rem',
-                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : '#f0f0f0',
-                        color: theme.palette.text.secondary
+                        fontWeight: 700,
+                        color: theme.palette.text.primary,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
                       }}
-                    />
+                    >
+                      {transaction.description}
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.75, mt: 0.25 }}>
+                      <Typography variant="caption" color="textSecondary" sx={{ whiteSpace: 'nowrap' }}>
+                        {transaction.date}
+                      </Typography>
+                      <Chip
+                        label={transaction.category_name || 'Unknown'}
+                        size="small"
+                        sx={{
+                          height: 18,
+                          fontSize: '0.625rem',
+                          bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0,0,0,0.04)',
+                          color: theme.palette.text.secondary
+                        }}
+                      />
+                    </Box>
                   </Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: 800,
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                      textAlign: 'right',
+                      color: isIncome
+                        ? theme.palette.mode === 'dark' ? '#81c784' : '#2e7d32'
+                        : theme.palette.mode === 'dark' ? '#e57373' : '#d32f2f'
+                    }}
+                  >
+                    {isIncome ? '+' : '−'}{currencySymbol}{parseFloat(transaction.amount).toFixed(2)}
+                  </Typography>
                 </Box>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontWeight: 'bold',
-                    color: transaction.transaction_type === 'income'
-                      ? theme.palette.mode === 'dark' ? '#81c784' : '#4caf50'
-                      : theme.palette.mode === 'dark' ? '#e57373' : '#f44336'
-                  }}
-                >
-                  {transaction.transaction_type === 'income' ? '+' : '-'}{currencySymbol}{parseFloat(transaction.amount).toFixed(2)}
-                </Typography>
-              </Box>
-            </ListItem>
-          ))}
+              </ListItem>
+            );
+          })}
+          {recentTransactions.length === 0 && (
+            <Box sx={{ p: 2.5, textAlign: 'center' }}>
+              <Typography variant="body2" color="textSecondary">No recent transactions found.</Typography>
+            </Box>
+          )}
         </List>
       </Paper>
 
       {/* Recent Budgets */}
-      <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', color: theme.palette.text.primary }}>Budget Progress</Typography>
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        {recentBudgets.map((budget) => {
-          const spent = calculateSpent(budget);
-          const remaining = Number(budget.amount) - spent;
-          const percent = Number(budget.amount) ? Math.min((spent / Number(budget.amount)) * 100, 100) : 0;
-          const categoryName = typeof budget.category === 'object' ? budget.category.name : categories.find(cat => cat.id === budget.category)?.name || 'Category';
-          return (
-            <Grid item xs={12} sm={6} md={4} key={budget.id}>
-              <BudgetProgressCard
-                name={categoryName}
-                spent={spent}
-                amount={budget.amount}
-                remaining={remaining}
-                percent={percent}
-                currencySymbol={currencySymbol}
-              />
-            </Grid>
-          );
-        })}
-      </Grid>
+      <Typography variant="h6" sx={{ mb: 1.5, fontWeight: 'bold', color: theme.palette.text.primary }}>Budget Progress</Typography>
+      <Box sx={{ width: '100%', overflow: 'hidden', mb: 4 }}>
+        <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
+          {recentBudgets.map((budget) => {
+            const spent = calculateSpent(budget);
+            const remaining = Number(budget.amount) - spent;
+            const percent = Number(budget.amount) ? Math.min((spent / Number(budget.amount)) * 100, 100) : 0;
+            const categoryName = typeof budget.category === 'object' ? budget.category.name : categories.find(cat => cat.id === budget.category)?.name || 'Category';
+            return (
+              <Grid item xs={12} sm={6} md={4} key={budget.id}>
+                <BudgetProgressCard
+                  name={categoryName}
+                  spent={spent}
+                  amount={budget.amount}
+                  remaining={remaining}
+                  percent={percent}
+                  currencySymbol={currencySymbol}
+                />
+              </Grid>
+            );
+          })}
+        </Grid>
+      </Box>
 
       {/* Recent Savings Goals */}
-      <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', color: theme.palette.text.primary }}>Recent Savings Goals</Typography>
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        {recentSavingsGoals.map((goal) => {
-          const currentAmount = Number(goal.current_amount || 0);
-          const targetAmount = Number(goal.target_amount || 0);
-          const remaining = Number(goal.remaining_amount || 0);
-          const percent = targetAmount ? Math.min((currentAmount / targetAmount) * 100, 100) : 0;
+      <Typography variant="h6" sx={{ mb: 1.5, fontWeight: 'bold', color: theme.palette.text.primary }}>Recent Savings Goals</Typography>
+      <Box sx={{ width: '100%', overflow: 'hidden', mb: 4 }}>
+        <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
+          {recentSavingsGoals.map((goal) => {
+            const currentAmount = Number(goal.current_amount || 0);
+            const targetAmount = Number(goal.target_amount || 0);
+            const remaining = Number(goal.remaining_amount || 0);
+            const percent = targetAmount ? Math.min((currentAmount / targetAmount) * 100, 100) : 0;
 
-          return (
-            <Grid item xs={12} sm={6} md={4} key={goal.id}>
-              <SavingsGoalCard
-                title={goal.title}
-                categoryName={goal.category?.name || 'Savings Category'}
-                currentAmount={currentAmount}
-                targetAmount={targetAmount}
-                remaining={remaining}
-                percent={percent}
-                currencySymbol={currencySymbol}
-              />
+            return (
+              <Grid item xs={12} sm={6} md={4} key={goal.id}>
+                <SavingsGoalCard
+                  title={goal.title}
+                  categoryName={goal.category?.name || 'Savings Category'}
+                  currentAmount={currentAmount}
+                  targetAmount={targetAmount}
+                  remaining={remaining}
+                  percent={percent}
+                  currencySymbol={currencySymbol}
+                />
+              </Grid>
+            );
+          })}
+          {recentSavingsGoals.length === 0 && (
+            <Grid item xs={12}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="body2" color="textSecondary">No savings goals yet.</Typography>
+              </Paper>
             </Grid>
-          );
-        })}
-        {recentSavingsGoals.length === 0 && (
-          <Grid item xs={12}>
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="body2" color="textSecondary">No savings goals yet.</Typography>
-            </Paper>
-          </Grid>
-        )}
-      </Grid>
+          )}
+        </Grid>
+      </Box>
     </Box>
   );
 };

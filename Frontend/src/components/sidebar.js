@@ -134,6 +134,7 @@ function Sidebar({ open, onClose }) {
                 width: open ? DRAWER_WIDTH : COLLAPSED_WIDTH,
                 flexShrink: 0,
                 position: 'fixed',
+                zIndex: (theme) => theme.zIndex.drawer + 2,
                 '& .MuiDrawer-paper': {
                     width: open ? DRAWER_WIDTH : COLLAPSED_WIDTH,
                     boxSizing: 'border-box',
@@ -141,6 +142,7 @@ function Sidebar({ open, onClose }) {
                     paddingRight: 0,
                     borderRight: 0,
                     position: 'fixed',
+                    zIndex: (theme) => theme.zIndex.drawer + 2,
                     transition: (theme) =>
                         theme.transitions.create('width', {
                             easing: theme.transitions.easing.sharp,
