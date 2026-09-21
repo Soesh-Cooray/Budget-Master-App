@@ -4,7 +4,6 @@ import {
 	Avatar,
 	Box,
 	Button,
-	Card,
 	Chip,
 	CircularProgress,
 	Container,
