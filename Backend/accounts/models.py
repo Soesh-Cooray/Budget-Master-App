@@ -27,6 +27,7 @@ class UserPreferences(models.Model):
     dashboard_start_date = models.CharField(max_length=35, blank=True, default='')
     dashboard_end_date = models.CharField(max_length=35, blank=True, default='')
     dashboard_preset = models.CharField(max_length=20, blank=True, default='')
+    currency = models.CharField(max_length=10, default='USD')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

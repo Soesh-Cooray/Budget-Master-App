@@ -22,6 +22,7 @@ class Migration(migrations.Migration):
                 ('dashboard_start_date', models.CharField(blank=True, default='', max_length=35)),
                 ('dashboard_end_date', models.CharField(blank=True, default='', max_length=35)),
                 ('dashboard_preset', models.CharField(blank=True, default='', max_length=20)),
+                ('currency', models.CharField(default='USD', max_length=10)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='user_preferences', to=settings.AUTH_USER_MODEL)),

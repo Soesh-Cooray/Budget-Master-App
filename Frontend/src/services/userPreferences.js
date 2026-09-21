@@ -56,6 +56,10 @@ export const saveUserPreferences = async (partialPrefs, explicitUserId = null) =
     if (partialPrefs.theme_mode) {
       localStorage.setItem('theme_mode', partialPrefs.theme_mode);
     }
+    if (partialPrefs.currency) {
+      localStorage.setItem('currency', partialPrefs.currency);
+      window.dispatchEvent(new Event('currencyChange'));
+    }
 
     // Broadcast update across components
     window.dispatchEvent(
@@ -114,6 +118,10 @@ export const syncUserPreferencesFromBackend = async (explicitUserId = null) => {
 
       if (merged.theme_mode) {
         localStorage.setItem('theme_mode', merged.theme_mode);
+      }
+      if (merged.currency) {
+        localStorage.setItem('currency', merged.currency);
+        window.dispatchEvent(new Event('currencyChange'));
       }
 
       window.dispatchEvent(

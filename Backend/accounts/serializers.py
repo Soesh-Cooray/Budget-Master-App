@@ -72,4 +72,5 @@ class UserPreferencesSerializer(serializers.ModelSerializer):
             'dashboard_start_date',
             'dashboard_end_date',
             'dashboard_preset',
+            'currency',
         )
