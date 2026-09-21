@@ -3,7 +3,7 @@ import { isSameMonth, isSameYear, isSameWeek } from 'date-fns';
 import { Plus, PieChart, Edit2, Trash2 } from 'lucide-react';
 import { budgetAPI, categoryAPI, transactionAPI } from '../api';
 import { useCurrency } from '../context/CurrencyContext';
-import { formatCurrency } from '../lib/utils';
+import { formatCurrency, isDateInBudgetPeriod } from '../lib/utils';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Sheet } from './ui/drawer';
@@ -159,21 +159,9 @@ export function BudgetsPage() {
                 const expCatId = typeof exp.category === 'object' ? exp.category.id : exp.category;
                 if (Number(expCatId) !== Number(bCatId)) return false;
 
-                if (!exp.date) return false;
-                const expDate = new Date(exp.date);
-                const now = new Date();
+                if (!exp.date || !budget.start_date) return false;
                 
-                const period = budget.period ? budget.period.toLowerCase() : 'monthly';
-                
-                if (period === 'monthly') {
-                  return isSameMonth(expDate, now) && isSameYear(expDate, now);
-                } else if (period === 'yearly') {
-                  return isSameYear(expDate, now);
-                } else if (period === 'weekly') {
-                  return isSameWeek(expDate, now, { weekStartsOn: 1 }) && isSameYear(expDate, now);
-                }
-                
-                return true;
+                return isDateInBudgetPeriod(exp.date, budget.start_date, budget.period);
               })
               .reduce((sum, exp) => sum + Math.abs(parseFloat(exp.amount || 0)), 0);
 

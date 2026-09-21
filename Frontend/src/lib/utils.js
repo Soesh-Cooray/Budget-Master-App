@@ -55,3 +55,35 @@ export function getCategoryBadgeStyle(categoryName = '') {
   ];
   return palettes[hash % palettes.length];
 }
+
+/**
+ * Check if an expense date falls within the current active budget period
+ */
+import { differenceInMonths, differenceInWeeks, differenceInYears, addMonths, addWeeks, addYears } from 'date-fns';
+
+export function isDateInBudgetPeriod(expenseDateStr, budgetStartDateStr, period = 'monthly') {
+  if (!expenseDateStr || !budgetStartDateStr) return false;
+  const expDate = new Date(expenseDateStr);
+  const startDate = new Date(budgetStartDateStr);
+  const now = new Date();
+  
+  const periodLower = period.toLowerCase();
+  
+  if (periodLower === 'monthly') {
+    const diff = differenceInMonths(now, startDate);
+    const currentPeriodStart = diff >= 0 ? addMonths(startDate, diff) : startDate;
+    const currentPeriodEnd = addMonths(currentPeriodStart, 1);
+    return expDate >= currentPeriodStart && expDate < currentPeriodEnd;
+  } else if (periodLower === 'weekly') {
+    const diff = differenceInWeeks(now, startDate);
+    const currentPeriodStart = diff >= 0 ? addWeeks(startDate, diff) : startDate;
+    const currentPeriodEnd = addWeeks(currentPeriodStart, 1);
+    return expDate >= currentPeriodStart && expDate < currentPeriodEnd;
+  } else if (periodLower === 'yearly') {
+    const diff = differenceInYears(now, startDate);
+    const currentPeriodStart = diff >= 0 ? addYears(startDate, diff) : startDate;
+    const currentPeriodEnd = addYears(currentPeriodStart, 1);
+    return expDate >= currentPeriodStart && expDate < currentPeriodEnd;
+  }
+  return true;
+}
