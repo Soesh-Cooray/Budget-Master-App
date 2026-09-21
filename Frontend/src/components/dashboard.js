@@ -34,7 +34,7 @@ export function Dashboard() {
   const [username, setUsername] = useState('');
   const [quickAddOpen, setQuickAddOpen] = useState(false);
 
-  // Date filters
+  // Date filters with localStorage persistence
   const [startDate, setStartDate] = useState(() => {
     const saved = localStorage.getItem('dashboardStartDate');
     return saved ? new Date(saved) : subDays(new Date(), 30);
@@ -43,6 +43,18 @@ export function Dashboard() {
     const saved = localStorage.getItem('dashboardEndDate');
     return saved ? new Date(saved) : new Date();
   });
+
+  const handleStartDateChange = (newDate) => {
+    if (!newDate || isNaN(newDate.getTime())) return;
+    setStartDate(newDate);
+    localStorage.setItem('dashboardStartDate', newDate.toISOString());
+  };
+
+  const handleEndDateChange = (newDate) => {
+    if (!newDate || isNaN(newDate.getTime())) return;
+    setEndDate(newDate);
+    localStorage.setItem('dashboardEndDate', newDate.toISOString());
+  };
 
   // Financial Data state
   const [financialData, setFinancialData] = useState({
@@ -190,23 +202,17 @@ export function Dashboard() {
     const today = new Date();
     if (type === '30days') {
       const start = subDays(today, 30);
-      setStartDate(start);
-      setEndDate(today);
-      localStorage.setItem('dashboardStartDate', start.toISOString());
-      localStorage.setItem('dashboardEndDate', today.toISOString());
+      handleStartDateChange(start);
+      handleEndDateChange(today);
     } else if (type === 'thisMonth') {
       const start = startOfMonth(today);
       const end = endOfMonth(today);
-      setStartDate(start);
-      setEndDate(end);
-      localStorage.setItem('dashboardStartDate', start.toISOString());
-      localStorage.setItem('dashboardEndDate', end.toISOString());
+      handleStartDateChange(start);
+      handleEndDateChange(end);
     } else if (type === 'all') {
       const start = new Date(today.getFullYear(), 0, 1);
-      setStartDate(start);
-      setEndDate(today);
-      localStorage.setItem('dashboardStartDate', start.toISOString());
-      localStorage.setItem('dashboardEndDate', today.toISOString());
+      handleStartDateChange(start);
+      handleEndDateChange(today);
     }
   };
 
@@ -234,16 +240,8 @@ export function Dashboard() {
           </p>
         </div>
 
-        {/* Quick Add and Refresh Controls */}
+        {/* Quick Add Controls */}
         <div className="flex items-center gap-2.5 shrink-0">
-          <Button
-            onClick={() => fetchData()}
-            variant="outline"
-            className="rounded-xl px-3 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
-            title="Refresh metrics"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </Button>
           <Button
             onClick={() => setQuickAddOpen(true)}
             variant="default"
@@ -255,37 +253,80 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Date Filter Strip */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-2xl glass-panel text-xs">
-        <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" />
-          <span className="font-semibold text-slate-700 dark:text-slate-300">Period:</span>
+      {/* Date Range Selector Card with From Date, To Date & Update Button */}
+      <div className="p-4 sm:p-5 rounded-3xl glass-panel border border-slate-200/90 dark:border-slate-800/80 shadow-sm dark:shadow-xl space-y-3 transition-colors duration-200">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-200/80 dark:border-slate-800/80">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+            <span className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+              Date Range Filter
+            </span>
+          </div>
+
+          {/* Quick Presets */}
           <div className="flex items-center gap-1.5 flex-wrap">
             <button
               onClick={() => setPresetRange('30days')}
-              className="px-2.5 py-1 rounded-lg bg-slate-200/70 dark:bg-slate-800/80 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors"
+              className="px-2.5 py-1 rounded-lg bg-slate-200/70 dark:bg-slate-800/80 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors"
             >
               Last 30 Days
             </button>
             <button
               onClick={() => setPresetRange('thisMonth')}
-              className="px-2.5 py-1 rounded-lg bg-slate-200/70 dark:bg-slate-800/80 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors"
+              className="px-2.5 py-1 rounded-lg bg-slate-200/70 dark:bg-slate-800/80 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors"
             >
               This Month
             </button>
             <button
               onClick={() => setPresetRange('all')}
-              className="px-2.5 py-1 rounded-lg bg-slate-200/70 dark:bg-slate-800/80 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors"
+              className="px-2.5 py-1 rounded-lg bg-slate-200/70 dark:bg-slate-800/80 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors"
             >
               Year to Date
             </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-mono text-[11px]">
-          <span>{format(startDate, 'MMM d, yyyy')}</span>
-          <span>→</span>
-          <span>{format(endDate, 'MMM d, yyyy')}</span>
+        {/* Date Inputs & Update Button Row */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 pt-1">
+          {/* From Date */}
+          <div className="flex-1 space-y-1">
+            <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+              From Date
+            </label>
+            <input
+              type="date"
+              value={format(startDate, 'yyyy-MM-dd')}
+              onChange={(e) => {
+                if (e.target.value) handleStartDateChange(new Date(e.target.value));
+              }}
+              className="h-11 w-full rounded-xl bg-slate-100 dark:bg-slate-950/70 border border-slate-300 dark:border-slate-700/80 px-3.5 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500 shadow-inner"
+            />
+          </div>
+
+          {/* To Date */}
+          <div className="flex-1 space-y-1">
+            <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+              To Date
+            </label>
+            <input
+              type="date"
+              value={format(endDate, 'yyyy-MM-dd')}
+              onChange={(e) => {
+                if (e.target.value) handleEndDateChange(new Date(e.target.value));
+              }}
+              className="h-11 w-full rounded-xl bg-slate-100 dark:bg-slate-950/70 border border-slate-300 dark:border-slate-700/80 px-3.5 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500 shadow-inner"
+            />
+          </div>
+
+          {/* Update Button */}
+          <Button
+            onClick={() => fetchData()}
+            variant="default"
+            className="h-11 px-6 rounded-xl font-bold shadow-md shadow-indigo-600/25 flex items-center justify-center gap-2 shrink-0 touch-target"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <span>Update</span>
+          </Button>
         </div>
       </div>
 
