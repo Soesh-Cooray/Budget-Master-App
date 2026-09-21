@@ -1,6 +1,7 @@
 import React from 'react';
 import { Search, RotateCcw, ArrowUpDown } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
+import { Input } from '../ui/input';
 
 export function TransactionFilters({
   searchTerm,
@@ -81,23 +82,23 @@ export function TransactionFilters({
 
           {/* Start Date */}
           <div>
-            <input
+            <Input
               type="date"
               value={startDate}
               onChange={(e) => onStartDateChange(e.target.value)}
               placeholder="From Date"
-              className="h-11 w-full rounded-xl bg-slate-100 dark:bg-slate-950/70 border border-slate-300 dark:border-slate-700/80 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500"
+              className="h-11 w-full"
             />
           </div>
 
           {/* End Date */}
           <div>
-            <input
+            <Input
               type="date"
               value={endDate}
               onChange={(e) => onEndDateChange(e.target.value)}
               placeholder="To Date"
-              className="h-11 w-full rounded-xl bg-slate-100 dark:bg-slate-950/70 border border-slate-300 dark:border-slate-700/80 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500"
+              className="h-11 w-full"
             />
           </div>
 
