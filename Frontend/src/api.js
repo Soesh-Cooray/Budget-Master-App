@@ -58,7 +58,7 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && !error.config?.skipGlobalError) {
       const isNetworkError = !error.response || error.code === 'ERR_NETWORK';
       const isServerError = error.response && error.response.status >= 500;
       if (isNetworkError || isServerError) {

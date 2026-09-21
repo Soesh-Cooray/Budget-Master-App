@@ -76,6 +76,7 @@ export const saveUserPreferences = async (partialPrefs, explicitUserId = null) =
     try {
       await apiClient.patch('/auth/settings/preferences/', partialPrefs, {
         baseURL: API_BASE,
+        skipGlobalError: true,
       });
     } catch (err) {
       // Backend may be offline, remote Vercel, or local MySQL down; local preference is already safe
@@ -95,6 +96,7 @@ export const syncUserPreferencesFromBackend = async (explicitUserId = null) => {
   try {
     const res = await apiClient.get('/auth/settings/preferences/', {
       baseURL: API_BASE,
+      skipGlobalError: true,
     });
     if (res.data) {
       const remoteData = res.data;
