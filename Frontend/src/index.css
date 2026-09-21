@@ -71,6 +71,52 @@
   }
 }
 
+/* Date input cross-browser dark/light theme support */
+input[type="date"] {
+  color-scheme: light;
+}
+
+.dark input[type="date"] {
+  color-scheme: dark;
+}
+
+input[type="date"]::-webkit-datetime-edit {
+  display: inline-flex;
+}
+
+/* Custom date input styling (used by Input component with Lucide Calendar icon overlay) */
+input[type="date"].custom-date-input::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 10;
+}
+
+/* Native date input indicator styling for standard/MUI date pickers */
+input[type="date"]:not(.custom-date-input)::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  margin-left: auto;
+  opacity: 0.75;
+  transition: opacity 0.2s ease, transform 0.15s ease;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+input[type="date"]:not(.custom-date-input)::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  transform: scale(1.08);
+}
+
+.dark input[type="date"]:not(.custom-date-input)::-webkit-calendar-picker-indicator {
+  filter: brightness(0) invert(1);
+  opacity: 0.85;
+}
+
 /* Glassmorphism surfaces - clean in both Light and Dark modes */
 .glass-panel {
   background: rgba(255, 255, 255, 0.85);
