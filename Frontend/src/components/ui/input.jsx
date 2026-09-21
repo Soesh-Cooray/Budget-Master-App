@@ -47,7 +47,7 @@ export const Input = React.forwardRef(
           />
           {isDate && (
             <div
-              className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-300 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-white group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors"
               aria-hidden="true"
             >
               <Calendar className="w-4 h-4" />

@@ -86,15 +86,13 @@ input[type="date"]::-webkit-datetime-edit {
 
 /* Custom date input styling (used by Input component with Lucide Calendar icon overlay) */
 input[type="date"].custom-date-input::-webkit-calendar-picker-indicator {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 28px;
-  height: 28px;
+  display: none !important;
+  -webkit-appearance: none !important;
   opacity: 0;
-  cursor: pointer;
-  z-index: 10;
+}
+input[type="date"].custom-date-input::-webkit-inner-spin-button,
+input[type="date"].custom-date-input::-webkit-clear-button {
+  display: none !important;
 }
 
 /* Native date input indicator styling for standard/MUI date pickers */
