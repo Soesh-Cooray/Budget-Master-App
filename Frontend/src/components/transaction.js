@@ -442,87 +442,142 @@ function TransactionsPage() {
       {/* Filters Card */}
       <StyledCard sx={{
         mb: 4,
-        px: 2,
-        py: 2,
+        p: { xs: 2, sm: 2.5 },
         borderRadius: 4,
         border: `1px solid ${theme.palette.divider}`,
         boxShadow: !isMobile
           ? (theme.palette.mode === 'dark' ? '0 12px 32px rgba(0,0,0,0.35)' : '0 12px 30px rgba(34, 67, 115, 0.1)')
           : undefined,
       }}>
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="center">
-          <TextField
-            placeholder="Search transactions..."
-            size="small"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            fullWidth
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon color="action" />
-                </InputAdornment>
-              ),
-            }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 3,
-              }
-            }}
-          />
+        <Grid container spacing={1.5} alignItems="center">
+          <Grid item xs={12} md={3.5} lg={3.5}>
+            <TextField
+              placeholder="Search transactions..."
+              size="small"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              fullWidth
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color="action" />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2.5,
+                }
+              }}
+            />
+          </Grid>
 
-          <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} width={{ xs: '100%', md: 'auto' }}>
-            <Stack direction="row" spacing={2}>
-              <TextField
-                type="date"
-                label="Start Date"
-                size="small"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                sx={{ flex: 1, minWidth: { xs: 0, md: 130 }, '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
-              />
-              <TextField
-                type="date"
-                label="End Date"
-                size="small"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                sx={{ flex: 1, minWidth: { xs: 0, md: 130 }, '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
-              />
-            </Stack>
-            <Stack direction="row" spacing={2}>
-              <FormControl size="small" sx={{ flex: 1, minWidth: { xs: 0, md: 150 } }}>
-                <Select
-                  value={filterType}
-                  onChange={(e) => setFilterType(e.target.value)}
-                  displayEmpty
-                  sx={{ borderRadius: 3 }}
-                >
-                  <MenuItem value="all">All Types</MenuItem>
-                  <MenuItem value="income"><Stack direction="row" alignItems="center" gap={1}><TrendingUpIcon fontSize="small" color="success"/> Income</Stack></MenuItem>
-                  <MenuItem value="expense"><Stack direction="row" alignItems="center" gap={1}><TrendingDownIcon fontSize="small" color="error"/> Expense</Stack></MenuItem>
-                  <MenuItem value="savings"><Stack direction="row" alignItems="center" gap={1}><SavingsIcon fontSize="small" color="info"/> Savings</Stack></MenuItem>
-                </Select>
-              </FormControl>
+          <Grid item xs={12} sm={6} md={2} lg={2}>
+            <TextField
+              type="date"
+              label="Start Date"
+              size="small"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2.5,
+                }
+              }}
+            />
+          </Grid>
 
-              <FormControl size="small" sx={{ flex: 1, minWidth: { xs: 0, md: 150 } }}>
-                <Select
-                  value={filterCategory}
-                  onChange={(e) => setFilterCategory(e.target.value)}
-                  displayEmpty
-                  sx={{ borderRadius: 3 }}
-                >
-                  <MenuItem value="all">All Categories</MenuItem>
-                  {allCategories.map((cat) => (
-                    <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Stack>
-          </Stack>
-        </Stack>
+          <Grid item xs={12} sm={6} md={2} lg={2}>
+            <TextField
+              type="date"
+              label="End Date"
+              size="small"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2.5,
+                }
+              }}
+            />
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={2.25} lg={2.25}>
+            <FormControl size="small" fullWidth>
+              <InputLabel id="filter-type-label">Type</InputLabel>
+              <Select
+                labelId="filter-type-label"
+                label="Type"
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                sx={{ borderRadius: 2.5 }}
+              >
+                <MenuItem value="all">All Types</MenuItem>
+                <MenuItem value="income">
+                  <Stack direction="row" alignItems="center" gap={1}>
+                    <TrendingUpIcon fontSize="small" color="success" /> Income
+                  </Stack>
+                </MenuItem>
+                <MenuItem value="expense">
+                  <Stack direction="row" alignItems="center" gap={1}>
+                    <TrendingDownIcon fontSize="small" color="error" /> Expense
+                  </Stack>
+                </MenuItem>
+                <MenuItem value="savings">
+                  <Stack direction="row" alignItems="center" gap={1}>
+                    <SavingsIcon fontSize="small" color="info" /> Savings
+                  </Stack>
+                </MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={2.25} lg={2.25}>
+            <FormControl size="small" fullWidth>
+              <InputLabel id="filter-category-label">Category</InputLabel>
+              <Select
+                labelId="filter-category-label"
+                label="Category"
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+                sx={{ borderRadius: 2.5 }}
+              >
+                <MenuItem value="all">All Categories</MenuItem>
+                {allCategories.map((cat) => (
+                  <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
+
+        {(searchTerm || startDate || endDate || filterType !== 'all' || filterCategory !== 'all') && (
+          <Box display="flex" justifyContent="flex-end" mt={1.5}>
+            <Button
+              size="small"
+              onClick={() => {
+                setSearchTerm('');
+                setStartDate('');
+                setEndDate('');
+                setFilterType('all');
+                setFilterCategory('all');
+              }}
+              sx={{
+                textTransform: 'none',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                color: 'text.secondary',
+                '&:hover': { color: 'primary.main' }
+              }}
+            >
+              Reset filters
+            </Button>
+          </Box>
+        )}
       </StyledCard>
 
       {/* Transactions Table / Mobile Cards */}

@@ -504,50 +504,87 @@ const Reports = () => {
 
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-      <Box mb={4}>
-        <Typography variant="h4" component="h1" gutterBottom fontWeight="bold">
-          Financial Reports
-        </Typography>
-        <Typography variant="subtitle1" color="text.secondary">
-          Visualize your financial trends and patterns
-        </Typography>
-      </Box>
+      <Box
+        display="flex"
+        flexDirection={{ xs: 'column', md: 'row' }}
+        justifyContent="space-between"
+        alignItems={{ xs: 'flex-start', md: 'flex-end' }}
+        gap={2}
+        mb={3.5}
+      >
+        <Box>
+          <Typography variant="h4" component="h1" gutterBottom fontWeight="bold">
+            Financial Reports
+          </Typography>
+          <Typography variant="subtitle1" color="text.secondary">
+            Visualize your financial trends and patterns
+          </Typography>
+        </Box>
 
-      <Box display="flex" justifyContent="flex-end" alignItems="center" gap={2} mb={3} flexWrap="wrap">
-        <TextField
-          type="date"
-          label="Start Date"
-          size="small"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          InputLabelProps={{ shrink: true }}
-          sx={{ minWidth: 150, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-        />
-        <TextField
-          type="date"
-          label="End Date"
-          size="small"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          InputLabelProps={{ shrink: true }}
-          sx={{ minWidth: 150, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-        />
-        <FormControl variant="outlined" size="small" sx={{ minWidth: 160 }}>
-          <InputLabel id="time-range-label">Time Range</InputLabel>
-          <Select
-            labelId="time-range-label"
-            id="time-range"
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
-            label="Time Range"
-            sx={{ borderRadius: 2 }}
+        <Box
+          display="flex"
+          flexDirection={{ xs: 'column', sm: 'row' }}
+          justifyContent="flex-start"
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          gap={1.5}
+          width={{ xs: '100%', md: 'auto' }}
+        >
+          <TextField
+            type="date"
+            label="Start Date"
+            size="small"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            sx={{
+              width: { xs: '100%', sm: 165 },
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2.5,
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : '#ffffff',
+              }
+            }}
+          />
+          <TextField
+            type="date"
+            label="End Date"
+            size="small"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            sx={{
+              width: { xs: '100%', sm: 165 },
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2.5,
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : '#ffffff',
+              }
+            }}
+          />
+          <FormControl
+            variant="outlined"
+            size="small"
+            sx={{
+              width: { xs: '100%', sm: 175 },
+            }}
           >
-            <MenuItem value="1">This month</MenuItem>
-            <MenuItem value="3">Last 3 months</MenuItem>
-            <MenuItem value="6">Last 6 months</MenuItem>
-            <MenuItem value="12">Last year</MenuItem>
-          </Select>
-        </FormControl>
+            <InputLabel id="time-range-label">Time Range</InputLabel>
+            <Select
+              labelId="time-range-label"
+              id="time-range"
+              value={timeRange}
+              onChange={(e) => setTimeRange(e.target.value)}
+              label="Time Range"
+              sx={{
+                borderRadius: 2.5,
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : '#ffffff',
+              }}
+            >
+              <MenuItem value="1">This month</MenuItem>
+              <MenuItem value="3">Last 3 months</MenuItem>
+              <MenuItem value="6">Last 6 months</MenuItem>
+              <MenuItem value="12">Last year</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
       </Box>
 
       <Grid container spacing={3} mb={4}>
