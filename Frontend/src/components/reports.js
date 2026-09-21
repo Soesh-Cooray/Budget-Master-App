@@ -24,75 +24,90 @@ const EXPENSE_COLORS = ['#ff6767', '#ff7878', '#ff8989', '#ffaaaa', '#ffcfcf', '
 const INCOME_COLORS = ['#47894b', '#5ea758', '#8bbd78', '#98c377', '#7be382'];
 const SAVINGS_COLORS = ['#1c96c5', '#20a7db', '#62c1e5', '#a0d9ef', '#cfecf7', '#d2ebff'];
 
-const getMonthsForTimeRange = (timeRange, startDate, endDate) => {
-  const months = [];
-  
-  if (timeRange === 'custom' && startDate && endDate) {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const current = new Date(start.getFullYear(), start.getMonth(), 1);
-    const endLimit = new Date(end.getFullYear(), end.getMonth(), 1);
-    
-    while (current <= endLimit) {
-      months.push(current.toLocaleString('default', { month: 'short', year: 'numeric' }));
-      current.setMonth(current.getMonth() + 1);
-    }
-  } else {
-    const today = new Date();
-    let range = parseInt(timeRange);
-    if (isNaN(range)) range = 6;
-
-    for (let i = range - 1; i >= 0; i--) {
-      const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
-      months.push(date.toLocaleString('default', { month: 'short', year: 'numeric' }));
-    }
-  }
-  return months;
+const shiftMonth = (date, monthsToShift) => {
+  const d = new Date(date);
+  const originalDay = d.getDate();
+  d.setDate(1);
+  d.setMonth(d.getMonth() + monthsToShift);
+  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(originalDay, lastDay));
+  return d;
 };
 
-const filterByTimeRange = (items, timeRange, startDate, endDate) => {
-  let start, end;
-  
-  if (timeRange === 'custom' && startDate && endDate) {
-    start = new Date(startDate);
-    end = new Date(endDate);
-    end.setHours(23, 59, 59, 999);
-  } else {
-    let range = parseInt(timeRange);
-    if (isNaN(range)) range = 6;
-    const today = new Date();
-    start = new Date(today.getFullYear(), today.getMonth() - (range - 1), 1);
-    end = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
+const getPeriodsForRange = (startDateStr, endDateStr, timeRange) => {
+  const count = parseInt(timeRange) || 1;
+  const now = new Date();
+
+  const baseStart = startDateStr ? new Date(startDateStr) : new Date(now.getFullYear(), now.getMonth(), 1);
+  const baseEnd = endDateStr ? new Date(endDateStr) : new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+  let sDate = new Date(baseStart);
+  let eDate = new Date(baseEnd);
+  if (sDate > eDate) {
+    const temp = sDate;
+    sDate = eDate;
+    eDate = temp;
   }
-  
-  return items.filter(item => {
-    const date = new Date(item.date);
-    return date >= start && date <= end;
-  });
+
+  const periods = [];
+  for (let i = count - 1; i >= 0; i--) {
+    const pStart = shiftMonth(sDate, -i);
+    pStart.setHours(0, 0, 0, 0);
+
+    const pEnd = shiftMonth(eDate, -i);
+    pEnd.setHours(23, 59, 59, 999);
+
+    const isFullCalendarMonth = pStart.getDate() === 1 &&
+      pEnd.getDate() === new Date(pEnd.getFullYear(), pEnd.getMonth() + 1, 0).getDate() &&
+      pStart.getMonth() === pEnd.getMonth();
+
+    let label;
+    if (isFullCalendarMonth) {
+      label = pStart.toLocaleString('default', { month: 'short', year: 'numeric' });
+    } else {
+      const startFmt = pStart.toLocaleString('default', { month: 'short', day: 'numeric' });
+      const endFmt = pEnd.toLocaleString('default', { month: 'short', day: 'numeric' });
+      label = `${startFmt} - ${endFmt}`;
+    }
+
+    periods.push({
+      start: pStart,
+      end: pEnd,
+      label
+    });
+  }
+
+  for (let i = 0; i < periods.length - 1; i++) {
+    if (periods[i].end >= periods[i + 1].start) {
+      periods[i].end = new Date(periods[i + 1].start.getTime() - 1);
+    }
+  }
+
+  return periods;
 };
 
-const processIncomeVsExpensesData = (incomes, expenses, months) => {
-  const incomeData = new Array(months.length).fill(0);
-  const expenseData = new Array(months.length).fill(0);
+const processIncomeVsExpensesData = (incomes, expenses, periods) => {
+  const incomeData = new Array(periods.length).fill(0);
+  const expenseData = new Array(periods.length).fill(0);
 
   incomes.forEach(income => {
     const date = new Date(income.date);
-    const monthIndex = months.indexOf(date.toLocaleString('default', { month: 'short', year: 'numeric' }));
-    if (monthIndex !== -1) {
-      incomeData[monthIndex] += parseFloat(income.amount);
+    const periodIndex = periods.findIndex(p => date >= p.start && date <= p.end);
+    if (periodIndex !== -1) {
+      incomeData[periodIndex] += parseFloat(income.amount);
     }
   });
 
   expenses.forEach(expense => {
     const date = new Date(expense.date);
-    const monthIndex = months.indexOf(date.toLocaleString('default', { month: 'short', year: 'numeric' }));
-    if (monthIndex !== -1) {
-      expenseData[monthIndex] += parseFloat(expense.amount);
+    const periodIndex = periods.findIndex(p => date >= p.start && date <= p.end);
+    if (periodIndex !== -1) {
+      expenseData[periodIndex] += parseFloat(expense.amount);
     }
   });
 
   return {
-    labels: months,
+    labels: periods.map(p => p.label),
     income: incomeData,
     expenses: expenseData
   };
@@ -167,7 +182,7 @@ const processSavingsBreakdownData = (savings) => {
   };
 };
 
-const processAllCategorySpendingOverTime = (expenses, incomes, savings, months) => {
+const processAllCategorySpendingOverTime = (expenses, incomes, savings, periods) => {
   const getCategories = (arr, key = 'category_name') =>
     [...new Set(arr.map(item => item[key] || 'Uncategorized'))];
 
@@ -178,10 +193,10 @@ const processAllCategorySpendingOverTime = (expenses, incomes, savings, months) 
   const datasets = [
     ...expenseCategories.map((category, idx) => ({
       label: `Expense: ${category}`,
-      data: months.map((month) =>
+      data: periods.map((p) =>
         expenses
           .filter(e => (e.category_name || 'Uncategorized') === category &&
-            new Date(e.date).toLocaleString('default', { month: 'short', year: 'numeric' }) === month)
+            new Date(e.date) >= p.start && new Date(e.date) <= p.end)
           .reduce((sum, e) => sum + parseFloat(e.amount), 0)
       ),
       backgroundColor: EXPENSE_COLORS[idx % EXPENSE_COLORS.length],
@@ -189,10 +204,10 @@ const processAllCategorySpendingOverTime = (expenses, incomes, savings, months) 
     })),
     ...incomeCategories.map((category, idx) => ({
       label: `Income: ${category}`,
-      data: months.map((month) =>
+      data: periods.map((p) =>
         incomes
           .filter(i => (i.category_name || 'Uncategorized') === category &&
-            new Date(i.date).toLocaleString('default', { month: 'short', year: 'numeric' }) === month)
+            new Date(i.date) >= p.start && new Date(i.date) <= p.end)
           .reduce((sum, i) => sum + parseFloat(i.amount), 0)
       ),
       backgroundColor: INCOME_COLORS[idx % INCOME_COLORS.length],
@@ -200,10 +215,10 @@ const processAllCategorySpendingOverTime = (expenses, incomes, savings, months) 
     })),
     ...savingsCategories.map((category, idx) => ({
       label: `Savings: ${category}`,
-      data: months.map((month) =>
+      data: periods.map((p) =>
         savings
           .filter(s => (s.category_name || 'Uncategorized') === category &&
-            new Date(s.date).toLocaleString('default', { month: 'short', year: 'numeric' }) === month)
+            new Date(s.date) >= p.start && new Date(s.date) <= p.end)
           .reduce((sum, s) => sum + parseFloat(s.amount), 0)
       ),
       backgroundColor: SAVINGS_COLORS[idx % SAVINGS_COLORS.length],
@@ -212,7 +227,7 @@ const processAllCategorySpendingOverTime = (expenses, incomes, savings, months) 
   ];
 
   return {
-    labels: months,
+    labels: periods.map(p => p.label),
     datasets,
   };
 };
@@ -263,8 +278,16 @@ const TabPanel = (props) => {
 const Reports = () => {
   const [tabValue, setTabValue] = useState(0);
   const [timeRange, setTimeRange] = useState('6');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState(() => {
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    return firstDay.toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(() => {
+    const today = new Date();
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    return lastDay.toISOString().split('T')[0];
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [financialData, setFinancialData] = useState({
@@ -314,22 +337,34 @@ const Reports = () => {
       const incomes = incomesRes.data;
       const savingsTxns = savingsRes.data;
 
-      const filteredIncomes = filterByTimeRange(incomes, timeRange, startDate, endDate);
-      const filteredExpenses = filterByTimeRange(expenses, timeRange, startDate, endDate);
-      const filteredSavings = filterByTimeRange(savingsTxns, timeRange, startDate, endDate);
+      const periods = getPeriodsForRange(startDate, endDate, timeRange);
+      const overallStart = periods[0].start;
+      const overallEnd = periods[periods.length - 1].end;
+
+      const filteredIncomes = incomes.filter(item => {
+        const d = new Date(item.date);
+        return d >= overallStart && d <= overallEnd;
+      });
+      const filteredExpenses = expenses.filter(item => {
+        const d = new Date(item.date);
+        return d >= overallStart && d <= overallEnd;
+      });
+      const filteredSavings = savingsTxns.filter(item => {
+        const d = new Date(item.date);
+        return d >= overallStart && d <= overallEnd;
+      });
 
       const totalIncome = filteredIncomes.reduce((sum, income) => sum + parseFloat(income.amount), 0);
       const totalExpenses = filteredExpenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
       const totalSavings = filteredSavings.reduce((sum, saving) => sum + parseFloat(saving.amount), 0);
       const netBalance = totalIncome - totalExpenses - totalSavings;
 
-      const months = getMonthsForTimeRange(timeRange, startDate, endDate);
-      const incomeVsExpenses = processIncomeVsExpensesData(incomes, expenses, months);
+      const incomeVsExpenses = processIncomeVsExpensesData(incomes, expenses, periods);
 
       const expenseBreakdown = processExpenseBreakdownData(filteredExpenses);
       const incomeBreakdown = processIncomeBreakdownData(filteredIncomes);
       const savingsBreakdown = processSavingsBreakdownData(filteredSavings);
-      const categorySpending = processAllCategorySpendingOverTime(expenses, incomes, savingsTxns, months);
+      const categorySpending = processAllCategorySpendingOverTime(expenses, incomes, savingsTxns, periods);
 
       setFinancialData({
         totalIncome,
@@ -478,28 +513,26 @@ const Reports = () => {
         </Typography>
       </Box>
 
-      <Box display="flex" justifyContent="flex-end" alignItems="center" gap={2} mb={2} flexWrap="wrap">
-        {timeRange === 'custom' && (
-          <Box display="flex" gap={2}>
-            <TextField
-              type="date"
-              label="Start Date"
-              size="small"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-            />
-            <TextField
-              type="date"
-              label="End Date"
-              size="small"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-            />
-          </Box>
-        )}
-        <FormControl variant="outlined" size="small" sx={{ minWidth: 150 }}>
+      <Box display="flex" justifyContent="flex-end" alignItems="center" gap={2} mb={3} flexWrap="wrap">
+        <TextField
+          type="date"
+          label="Start Date"
+          size="small"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+          InputLabelProps={{ shrink: true }}
+          sx={{ minWidth: 150, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+        />
+        <TextField
+          type="date"
+          label="End Date"
+          size="small"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+          InputLabelProps={{ shrink: true }}
+          sx={{ minWidth: 150, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+        />
+        <FormControl variant="outlined" size="small" sx={{ minWidth: 160 }}>
           <InputLabel id="time-range-label">Time Range</InputLabel>
           <Select
             labelId="time-range-label"
@@ -507,12 +540,12 @@ const Reports = () => {
             value={timeRange}
             onChange={(e) => setTimeRange(e.target.value)}
             label="Time Range"
+            sx={{ borderRadius: 2 }}
           >
             <MenuItem value="1">This month</MenuItem>
             <MenuItem value="3">Last 3 months</MenuItem>
             <MenuItem value="6">Last 6 months</MenuItem>
             <MenuItem value="12">Last year</MenuItem>
-            <MenuItem value="custom">Custom Date Range</MenuItem>
           </Select>
         </FormControl>
       </Box>
