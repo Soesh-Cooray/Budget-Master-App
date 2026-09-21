@@ -1,12 +1,24 @@
-
 import axios from 'axios';
 
 const PRODUCTION_API_BASE = 'https://production-budget-master-backend.vercel.app';
 
 const resolveApiBase = () => {
-  const envBase = process.env.REACT_APP_API_BASE;
-  if (envBase) {
-    return envBase;
+  // Vite env variable
+  try {
+    if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE) {
+      return import.meta.env.VITE_API_BASE;
+    }
+  } catch (e) {
+    // Ignore
+  }
+
+  // Fallback for process.env
+  try {
+    if (typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_BASE) {
+      return process.env.REACT_APP_API_BASE;
+    }
+  } catch (e) {
+    // Ignore
   }
 
   if (typeof window !== 'undefined' && window.__API_BASE__) {
@@ -22,14 +34,14 @@ const resolveApiBase = () => {
   return PRODUCTION_API_BASE;
 };
 
-// Root API base (frontend can still override with REACT_APP_API_BASE).
+// Root API base
 export const API_BASE = resolveApiBase();
 
 // Budget endpoints live under /api/
 export const apiClient = axios.create({
   baseURL: `${API_BASE}/api/`,
+  timeout: 15000,
 });
-
 
 apiClient.interceptors.request.use(
   (config) => {
@@ -42,18 +54,40 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Response interceptor to notify users if backend is experiencing trouble
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (typeof window !== 'undefined') {
+      const isNetworkError = !error.response || error.code === 'ERR_NETWORK';
+      const isServerError = error.response && error.response.status >= 500;
+      if (isNetworkError || isServerError) {
+        window.dispatchEvent(
+          new CustomEvent('backend-trouble', {
+            detail: 'The backend is experiencing trouble. Please try again.',
+          })
+        );
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Transaction API
 export const transactionAPI = {
   getAll: () => apiClient.get('transactions/'),
-  getExpenses: (startDate, endDate) => apiClient.get('transactions/expenses/', {
-    params: { start_date: startDate, end_date: endDate }
-  }),
-  getIncomes: (startDate, endDate) => apiClient.get('transactions/income/', {
-    params: { start_date: startDate, end_date: endDate }
-  }),
-  getSavings: (startDate, endDate) => apiClient.get('transactions/savings/', {
-    params: { start_date: startDate, end_date: endDate }
-  }),
+  getExpenses: (startDate, endDate) =>
+    apiClient.get('transactions/expenses/', {
+      params: { start_date: startDate, end_date: endDate },
+    }),
+  getIncomes: (startDate, endDate) =>
+    apiClient.get('transactions/income/', {
+      params: { start_date: startDate, end_date: endDate },
+    }),
+  getSavings: (startDate, endDate) =>
+    apiClient.get('transactions/savings/', {
+      params: { start_date: startDate, end_date: endDate },
+    }),
   create: (transactionData) => apiClient.post('transactions/', transactionData),
   update: (id, transactionData) => apiClient.put(`transactions/${id}/`, transactionData),
   delete: (id) => apiClient.delete(`transactions/${id}/`),
@@ -78,6 +112,7 @@ export const budgetAPI = {
   delete: (id) => apiClient.delete(`budgets/${id}/`),
 };
 
+// Savings Goal API
 export const savingsGoalAPI = {
   getAll: () => apiClient.get('savings-goals/'),
   create: (goalData) => apiClient.post('savings-goals/', goalData),
@@ -85,6 +120,7 @@ export const savingsGoalAPI = {
   delete: (id) => apiClient.delete(`savings-goals/${id}/`),
 };
 
+// Debt API
 export const debtAPI = {
   getAll: () => apiClient.get('debts/'),
   create: (debtData) => apiClient.post('debts/', debtData),
@@ -93,7 +129,7 @@ export const debtAPI = {
   getHistory: (id) => apiClient.get(`debts/${id}/history/`),
 };
 
-//  currency list
+// Currency list
 export const currencyList = [
   { code: 'USD', symbol: '$', name: 'US Dollar' },
   { code: 'EUR', symbol: '€', name: 'Euro' },
@@ -159,10 +195,9 @@ export const currencyList = [
   { code: 'XPF', symbol: '₣', name: 'CFP franc' },
 ];
 
-
 export function getCurrencySymbol() {
-  const currency = localStorage.getItem('currency') || 'USD';
-  const found = currencyList.find(cur => cur.code === currency);
+  const currency = (typeof localStorage !== 'undefined' && localStorage.getItem('currency')) || 'USD';
+  const found = currencyList.find((cur) => cur.code === currency);
   return found ? found.symbol : '$';
 }
 

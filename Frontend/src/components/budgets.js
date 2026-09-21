@@ -1,697 +1,396 @@
-import React, { useState, useEffect } from 'react';
-import {
-    Container, Typography, Card, Grid, LinearProgress, Box, IconButton, Dialog, DialogTitle, DialogContent, TextField, Select,
-    MenuItem, Button, FormControl, InputLabel, Paper, CircularProgress, Snackbar, Alert, useTheme
-} from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import CloseIcon from '@mui/icons-material/Close';
-import AddIcon from '@mui/icons-material/Add';
-import SavingsIcon from '@mui/icons-material/Savings';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import { categoryAPI, budgetAPI, transactionAPI, getCurrencySymbol } from '../api';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Plus, PieChart, Edit2, Trash2, Calendar, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { budgetAPI, categoryAPI, transactionAPI, getCurrencySymbol } from '../api';
+import { formatCurrency } from '../lib/utils';
+import { Button } from './ui/button';
+import { Card, CardContent } from './ui/card';
+import { Sheet } from './ui/drawer';
+import { Input } from './ui/input';
 
-function BudgetsPage() {
-    const theme = useTheme();
-    const [budgets, setBudgets] = useState([]);
-    const [categories, setCategories] = useState([]);
-    const [transactions, setTransactions] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [isAddBudgetDialogOpen, setIsAddBudgetDialogOpen] = useState(false);
-    const [currencySymbol, setCurrencySymbol] = useState(getCurrencySymbol());
-    const [snackbar, setSnackbar] = useState({
-        open: false,
-        message: '',
-        severity: 'success'
-    });
-    const [editingBudget, setEditingBudget] = useState(null);
+export function BudgetsPage() {
+  const [budgets, setBudgets] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currencySymbol, setCurrencySymbol] = useState(getCurrencySymbol());
 
-    useEffect(() => {
-        fetchBudgetsCategoriesTransactions();
-        const updateCurrency = () => setCurrencySymbol(getCurrencySymbol());
-        window.addEventListener('currencyChange', updateCurrency);
-        return () => window.removeEventListener('currencyChange', updateCurrency);
-    }, []);
+  // Drawer / Form state
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [editingBudget, setEditingBudget] = useState(null);
+  const [category, setCategory] = useState('');
+  const [amount, setAmount] = useState('');
+  const [period, setPeriod] = useState('monthly');
+  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
 
-    const fetchBudgetsCategoriesTransactions = async () => {
-        try {
-            setLoading(true);
-            const [budgetsRes, categoriesRes, transactionsRes] = await Promise.all([
-                budgetAPI.getAll(),
-                categoryAPI.getExpenseCategories(),
-                transactionAPI.getExpenses()
-            ]);
-            setBudgets(budgetsRes.data);
-            setCategories(categoriesRes.data);
-            setTransactions(transactionsRes.data);
-            setLoading(false);
-        } catch (err) {
-            console.error('Error fetching budgets, categories, or transactions:', err);
-            setError('Failed to load budgets, categories, or transactions');
-            setLoading(false);
-        }
-    };
+  // Delete modal state
+  const [budgetToDelete, setBudgetToDelete] = useState(null);
 
-    const handleAddBudgetOpen = () => {
-        setIsAddBudgetDialogOpen(true);
-    };
+  useEffect(() => {
+    const updateCurrency = () => setCurrencySymbol(getCurrencySymbol());
+    window.addEventListener('currencyChange', updateCurrency);
+    return () => window.removeEventListener('currencyChange', updateCurrency);
+  }, []);
 
-    const handleAddBudgetClose = () => {
-        setIsAddBudgetDialogOpen(false);
-        setEditingBudget(null);
-    };
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [budgetsRes, categoriesRes, transactionsRes] = await Promise.all([
+        budgetAPI.getAll(),
+        categoryAPI.getExpenseCategories(),
+        transactionAPI.getExpenses(),
+      ]);
 
-    const handleEditBudget = (id, budget) => {
-        setEditingBudget(budget);
-        setIsAddBudgetDialogOpen(true);
-    };
+      setBudgets(budgetsRes.data || []);
+      setCategories(categoriesRes.data || []);
+      setExpenses(transactionsRes.data || []);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching budget data:', err);
+      setLoading(false);
+    }
+  }, []);
 
-    const handleAddNewBudget = async (newBudget) => {
-        try {
-            const payload = {
-                category_id: newBudget.category,
-                amount: newBudget.budgetAmount,
-                period: newBudget.period,
-                start_date: newBudget.startDate
-            };
-            console.log("Budget payload:", payload);
-            if (editingBudget) {
-                const res = await budgetAPI.update(editingBudget.id, payload);
-                setBudgets(budgets.map(b => b.id === editingBudget.id ? res.data : b));
-                setSnackbar({
-                    open: true,
-                    message: 'Budget updated successfully',
-                    severity: 'success'
-                });
-            } else {
-                const res = await budgetAPI.create(payload);
-                setBudgets([...budgets, res.data]);
-                setSnackbar({
-                    open: true,
-                    message: 'Budget added successfully',
-                    severity: 'success'
-                });
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleOpenAdd = () => {
+    setEditingBudget(null);
+    setCategory(categories.length > 0 ? categories[0].id : '');
+    setAmount('');
+    setPeriod('monthly');
+    setStartDate(new Date().toISOString().split('T')[0]);
+    setFormError('');
+    setIsDrawerOpen(true);
+  };
+
+  const handleOpenEdit = (budget) => {
+    setEditingBudget(budget);
+    const catId = typeof budget.category === 'object' ? budget.category.id : budget.category;
+    setCategory(catId);
+    setAmount(budget.amount);
+    setPeriod(budget.period || 'monthly');
+    setStartDate(budget.start_date || new Date().toISOString().split('T')[0]);
+    setFormError('');
+    setIsDrawerOpen(true);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!category || !amount || parseFloat(amount) <= 0) {
+      setFormError('Please select a category and enter a valid budget amount');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setFormError('');
+      const payload = {
+        category_id: category,
+        amount: parseFloat(amount),
+        period,
+        start_date: startDate,
+      };
+
+      if (editingBudget) {
+        await budgetAPI.update(editingBudget.id, payload);
+      } else {
+        await budgetAPI.create(payload);
+      }
+
+      setIsSubmitting(false);
+      setIsDrawerOpen(false);
+      fetchData();
+    } catch (err) {
+      setIsSubmitting(false);
+      console.error('Failed to save budget:', err);
+      setFormError('Failed to save budget. Please check inputs.');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!budgetToDelete) return;
+    try {
+      await budgetAPI.delete(budgetToDelete.id);
+      setBudgets((prev) => prev.filter((b) => b.id !== budgetToDelete.id));
+      setBudgetToDelete(null);
+    } catch (err) {
+      console.error('Failed to delete budget:', err);
+      alert('Failed to delete budget.');
+    }
+  };
+
+  return (
+    <div className="w-full min-h-screen px-4 sm:px-6 md:px-8 py-6 max-w-7xl mx-auto space-y-6 pb-24 md:pb-12">
+      {/* Top Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800/80 shadow-xl">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-semibold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20">
+              Budgets
+            </span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight">
+            Spending Allocation
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            Set and monitor category limits to prevent overspending.
+          </p>
+        </div>
+
+        <Button
+          onClick={handleOpenAdd}
+          variant="default"
+          className="rounded-xl font-bold shadow-lg shadow-indigo-600/30 flex items-center gap-2 shrink-0 touch-target"
+        >
+          <Plus className="w-4 h-4 stroke-[2.5]" />
+          <span>New Budget</span>
+        </Button>
+      </div>
+
+      {/* Budget Cards Grid */}
+      {budgets.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          {budgets.map((budget) => {
+            const bCatId = typeof budget.category === 'object' ? budget.category.id : budget.category;
+            const categoryObj = categories.find((c) => c.id === bCatId);
+            const categoryName = categoryObj ? categoryObj.name : 'Category';
+
+            const spent = expenses
+              .filter((exp) => {
+                const expCatId = typeof exp.category === 'object' ? exp.category.id : exp.category;
+                return Number(expCatId) === Number(bCatId);
+              })
+              .reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
+
+            const total = Number(budget.amount || 1);
+            const remaining = Math.max(0, total - spent);
+            const percentage = Math.min(100, Math.round((spent / total) * 100));
+            const isExceeded = spent > total;
+            const isWarning = percentage >= 75 && !isExceeded;
+
+            let statusBg = 'bg-emerald-500';
+            let textColor = 'text-emerald-400';
+            let badgeStyle = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+
+            if (isExceeded) {
+              statusBg = 'bg-rose-500 shadow-sm shadow-rose-500/50';
+              textColor = 'text-rose-400';
+              badgeStyle = 'bg-rose-500/15 text-rose-400 border-rose-500/30';
+            } else if (isWarning) {
+              statusBg = 'bg-amber-500 shadow-sm shadow-amber-500/50';
+              textColor = 'text-amber-400';
+              badgeStyle = 'bg-amber-500/15 text-amber-400 border-amber-500/30';
             }
-        } catch (err) {
-            setSnackbar({
-                open: true,
-                message: editingBudget ? 'Failed to update budget' : 'Failed to add budget',
-                severity: 'error'
-            });
-        }
-    };
 
-    const handleDeleteBudget = async (id) => {
-        try {
-            await budgetAPI.delete(id);
-            setBudgets(budgets.filter(budget => budget.id !== id));
-            setSnackbar({
-                open: true,
-                message: 'Budget deleted successfully',
-                severity: 'success'
-            });
-        } catch (err) {
-            setSnackbar({
-                open: true,
-                message: 'Failed to delete budget',
-                severity: 'error'
-            });
-        }
-    };
+            return (
+              <Card key={budget.id} className="relative group hover:border-slate-700/80 transition-all">
+                <CardContent className="p-5 sm:p-6 space-y-4">
+                  {/* Card Header: Category & Actions */}
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <span className="text-lg font-bold text-slate-100 block">{categoryName}</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${badgeStyle}`}>
+                          {isExceeded ? 'Limit Exceeded' : isWarning ? 'Approaching Limit' : 'Within Budget'}
+                        </span>
+                        <span className="text-[11px] text-slate-400 capitalize">{budget.period || 'monthly'}</span>
+                      </div>
+                    </div>
 
-    const handleCloseSnackbar = () => {
-        setSnackbar({ ...snackbar, open: false });
-    };
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleOpenEdit(budget)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-slate-800 transition-colors"
+                        title="Edit Budget"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setBudgetToDelete(budget)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/30 transition-colors"
+                        title="Delete Budget"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
 
-    const addMonthsClamped = (date, months) => {
-        const base = new Date(date);
-        const day = base.getDate();
-        base.setDate(1);
-        base.setMonth(base.getMonth() + months);
-        const lastDay = new Date(base.getFullYear(), base.getMonth() + 1, 0).getDate();
-        base.setDate(Math.min(day, lastDay));
-        return base;
-    };
+                  {/* Amounts */}
+                  <div className="flex items-baseline justify-between border-t border-slate-800/80 pt-3">
+                    <div>
+                      <span className="text-xs text-slate-400">Spent:</span>
+                      <div className="text-xl font-bold font-mono text-slate-100 tabular-nums">
+                        {formatCurrency(spent, currencySymbol)}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs text-slate-400">Limit:</span>
+                      <div className="text-sm font-bold font-mono text-slate-400 tabular-nums">
+                        {formatCurrency(total, currencySymbol)}
+                      </div>
+                    </div>
+                  </div>
 
-    const addYearsClamped = (date, years) => {
-        const base = new Date(date);
-        const day = base.getDate();
-        base.setDate(1);
-        base.setFullYear(base.getFullYear() + years);
-        const lastDay = new Date(base.getFullYear(), base.getMonth() + 1, 0).getDate();
-        base.setDate(Math.min(day, lastDay));
-        return base;
-    };
+                  {/* Progress Bar */}
+                  <div className="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden p-0.5 border border-slate-800">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${statusBg}`}
+                      style={{ width: `${Math.min(percentage, 100)}%` }}
+                    />
+                  </div>
 
-    const getNextPeriodDate = (date, period) => {
-        if (period === 'weekly') {
-            const next = new Date(date);
-            next.setDate(next.getDate() + 7);
-            return next;
-        }
-        if (period === 'yearly') {
-            return addYearsClamped(date, 1);
-        }
-        return addMonthsClamped(date, 1);
-    };
-
-    const getActivePeriodRange = (budget) => {
-        const start = new Date(budget.start_date);
-        if (Number.isNaN(start.getTime())) {
-            return null;
-        }
-
-        const now = new Date();
-        let periodStart = new Date(start);
-        let periodEnd = getNextPeriodDate(periodStart, budget.period);
-        let guard = 0;
-
-        while (periodEnd <= now && guard < 600) {
-            periodStart = periodEnd;
-            periodEnd = getNextPeriodDate(periodStart, budget.period);
-            guard += 1;
-        }
-
-        return { periodStart, periodEnd };
-    };
-
-    // Helper to calculate spent for a budget
-    const calculateSpent = (budget) => {
-        const activeRange = getActivePeriodRange(budget);
-        if (!activeRange) {
-            return 0;
-        }
-
-        const { periodStart, periodEnd } = activeRange;
-        return transactions
-            .filter(txn => {
-                const txnCatId = Number(typeof txn.category === 'object' ? txn.category.id : txn.category);
-                const budgetCatId = Number(typeof budget.category === 'object' ? budget.category.id : budget.category);
-                return (
-                    txnCatId === budgetCatId &&
-                    new Date(txn.date) >= periodStart &&
-                    new Date(txn.date) < periodEnd
-                );
-            })
-            .reduce((sum, txn) => sum + parseFloat(txn.amount), 0);
-    };
-
-    if (loading) {
-        return (
-            <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
-                <CircularProgress />
-            </Box>
-        );
-    }
-
-    if (error) {
-        return (
-            <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
-                <Typography color="error">{error}</Typography>
-            </Box>
-        );
-    }
-
-    return (
-        <Container maxWidth="xl" sx={{ py: 3 }}>
-            <Paper
-                elevation={0}
-                sx={{
-                    p: { xs: 2, md: 3 },
-                    mb: 3,
-                    borderRadius: 3,
-                    background: theme.palette.mode === 'dark'
-                        ? 'linear-gradient(135deg, rgba(53, 75, 99, 0.35), rgba(28, 40, 56, 0.4))'
-                        : 'linear-gradient(135deg, #f4fff7, #e9f7ff)',
-                    border: `1px solid ${theme.palette.divider}`,
-                }}
-            >
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={0}>
-                <Box>
-                    <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                        Budgets
-                    </Typography>
-                    <Typography variant="subtitle1" color="textSecondary">
-                        Set and track your spending limits
-                    </Typography>
-                </Box>
-                <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={handleAddBudgetOpen}
-                    sx={{
-                        borderRadius: 3,
-                        px: 2.5,
-                        py: 1,
-                        textTransform: 'none',
-                        fontWeight: 700,
-                        boxShadow: '0 10px 24px rgba(25, 118, 210, 0.25)',
-                    }}
-                >
-                    Add Budget
-                </Button>
-            </Box>
-            </Paper>
-
-            <Grid container spacing={3} alignItems="flex-start">
-                {budgets.map((budget) => {
-                    const spent = calculateSpent(budget);
-                    const remaining = Number(budget.amount) - spent;
-                    const percent = Number(budget.amount) ? Math.min((spent / Number(budget.amount)) * 100, 100) : 0;
-                    const categoryName =
-                        typeof budget.category === 'object'
-                            ? budget.category?.name
-                            : categories.find(cat => cat.id === budget.category)?.name || 'Category';
-                    return (
-                        <Grid item xs={12} sm={6} md={4} key={budget.id}>
-                            <BudgetProgressCard
-                                name={categoryName}
-                                period={budget.period}
-                                startDate={budget.start_date}
-                                spent={spent}
-                                amount={budget.amount}
-                                remaining={remaining}
-                                percent={percent}
-                                onEdit={() => handleEditBudget(budget.id, budget)}
-                                onDelete={() => handleDeleteBudget(budget.id)}
-                                currencySymbol={currencySymbol}
-                            />
-                        </Grid>
-                    );
-                })}
-                {budgets.length === 0 && (
-                    <Grid item xs={12} sx={{ textAlign: 'center', mt: 4 }}>
-                        <Paper
-                            elevation={0}
-                            sx={{
-                                p: 5,
-                                width: '100%',
-                                maxWidth: 980,
-                                minHeight: 320,
-                                borderRadius: 3,
-                                borderColor: 'primary.main',
-                                borderStyle: 'dashed',
-                                borderWidth: 1,
-                                mx: 'auto',
-                                background: theme.palette.mode === 'dark'
-                                    ? 'linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))'
-                                    : 'linear-gradient(180deg, #ffffff, #f8fbff)',
-                            }}
-                        >
-                            <SavingsIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-                            <Typography variant="h6" color="textSecondary" mb={1}>
-                                No budgets set up yet
-                            </Typography>
-                            <Typography variant="body2" color="textSecondary" mb={2}>
-                                Create your first budget to start tracking your spending and
-                                stay on top of your financial goals.
-                            </Typography>
-                            <Button variant="contained" color="primary" onClick={handleAddBudgetOpen}>
-                                Create Your First Budget
-                            </Button>
-                        </Paper>
-                    </Grid>
-                )}
-            </Grid>
-
-            <AddBudgetDialog
-                open={isAddBudgetDialogOpen}
-                onClose={handleAddBudgetClose}
-                onAddBudget={handleAddNewBudget}
-                categories={categories}
-                onAddCustomCategory={fetchBudgetsCategoriesTransactions}
-                editingBudget={editingBudget}
-            />
-
-            <Snackbar
-                open={snackbar.open}
-                autoHideDuration={6000}
-                onClose={handleCloseSnackbar}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-            >
-                <Alert onClose={handleCloseSnackbar} severity={snackbar.severity}>
-                    {snackbar.message}
-                </Alert>
-            </Snackbar>
-        </Container>
-    );
-}
-
-function AddBudgetDialog({ open, onClose, onAddBudget, categories, onAddCustomCategory, editingBudget }) {
-    const [category, setCategory] = useState('');
-    const [budgetAmount, setBudgetAmount] = useState(0);
-    const [period, setPeriod] = useState('monthly');
-    const [startDate, setStartDate] = useState(new Date().toLocaleDateString('en-CA').split('/').reverse().join('-'));
-    const [isAddingCustomCategory, setIsAddingCustomCategory] = useState(false);
-    const [newCategoryName, setNewCategoryName] = useState('');
-    const [error, setError] = useState('');
-    const [newCategoryType, setNewCategoryType] = useState('expense');
-    const theme = useTheme();
-
-    useEffect(() => {
-        if (editingBudget) {
-            // Ensure category is always an ID, not an object
-            setCategory(
-                typeof editingBudget.category === 'object'
-                    ? editingBudget.category?.id || ''
-                    : editingBudget.category || ''
+                  {/* Footer Stats */}
+                  <div className="flex justify-between items-center text-xs text-slate-400">
+                    <span>
+                      Remaining:{' '}
+                      <strong className="font-mono text-slate-200 tabular-nums">
+                        {formatCurrency(remaining, currencySymbol)}
+                      </strong>
+                    </span>
+                    <span className={`font-mono font-bold tabular-nums ${textColor}`}>
+                      {percentage}%
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
             );
-            setBudgetAmount(Number(editingBudget.amount));
-            setPeriod(editingBudget.period);
-            setStartDate(editingBudget.start_date);
-        } else {
-            setCategory('');
-            setBudgetAmount(0);
-            setPeriod('monthly');
-            setStartDate(new Date().toLocaleDateString('en-CA').split('/').reverse().join('-'));
-        }
-        setNewCategoryType('expense');
-    }, [editingBudget, categories, open]);
+          })}
+        </div>
+      ) : (
+        <Card className="p-12 text-center">
+          <div className="flex flex-col items-center justify-center text-slate-400 space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-slate-800/80 flex items-center justify-center text-slate-400">
+              <PieChart className="w-6 h-6" />
+            </div>
+            <p className="font-semibold text-slate-200">No active category budgets</p>
+            <p className="text-xs text-slate-500 max-w-sm">
+              Define spending limits for food, rent, shopping, and utilities to gain financial clarity.
+            </p>
+            <Button variant="default" size="sm" onClick={handleOpenAdd}>
+              Create First Budget
+            </Button>
+          </div>
+        </Card>
+      )}
 
-    const handleCategoryChange = (event) => {
-        setCategory(event.target.value);
-    };
+      {/* Add / Edit Budget Drawer */}
+      <Sheet
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        title={editingBudget ? 'Edit Budget' : 'Create Budget'}
+        description="Allocate monthly or weekly limits for a category"
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {formError && (
+            <div className="p-3 rounded-xl bg-rose-950/80 border border-rose-500/40 text-xs text-rose-300">
+              {formError}
+            </div>
+          )}
 
-    const handleBudgetAmountChange = (event) => {
-        setBudgetAmount(parseFloat(event.target.value) || 0);
-    };
-
-    const handlePeriodChange = (event) => {
-        setPeriod(event.target.value);
-    };
-
-    const handleStartDateChange = (event) => {
-        setStartDate(event.target.value);
-    };
-
-    const handleAddCustomCategory = async () => {
-        if (!newCategoryName.trim()) {
-            setError('Category name is required');
-            return;
-        }
-        try {
-            await categoryAPI.create({
-                name: newCategoryName,
-                transaction_type: newCategoryType
-            });
-            setNewCategoryName('');
-            setIsAddingCustomCategory(false);
-            setNewCategoryType('expense');
-            onAddCustomCategory();
-            setError('');
-        } catch (err) {
-            console.error('Error creating category:', err);
-            setError('Failed to create category');
-        }
-    };
-
-    const handleAddBudget = () => {
-        if (!category) {
-            setError('Please select a category');
-            return;
-        }
-        if (budgetAmount < 0) {
-            setError('Budget amount cannot be negative');
-            return;
-        }
-        onAddBudget({
-            category,
-            budgetAmount,
-            period,
-            startDate,
-            spent: 0,
-            allocated: budgetAmount
-        });
-        onClose();
-    };
-
-    return (
-            <Dialog
-                open={open}
-                onClose={onClose}
-                fullWidth
-                maxWidth="sm"
-                PaperProps={{
-                    sx: {
-                        borderRadius: 4,
-                        border: `1px solid ${theme.palette.divider}`,
-                    },
-                }}
+          <div>
+            <label className="text-xs font-semibold text-slate-300 mb-1.5 block">Category</label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="h-11 w-full rounded-xl bg-slate-950/80 border border-slate-700/80 px-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
             >
-            <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                {editingBudget ? 'Edit Budget' : 'Add Budget'}
-                <IconButton aria-label="close" onClick={onClose}>
-                    <CloseIcon />
-                </IconButton>
-            </DialogTitle>
-            <DialogContent>
-                <Grid container spacing={2}>
-                    <Grid item xs={12}>
-                        {!isAddingCustomCategory ? (
-                            <>
-                                <FormControl fullWidth margin="normal">
-                                    <InputLabel id="category-label" shrink>Category</InputLabel>
-                                    <Select
-                                        labelId="category-label"
-                                        id="category"
-                                        value={category}
-                                        onChange={handleCategoryChange}
-                                        error={!!error}
-                                        label="Category"
-                                    >
-                                        <MenuItem value="">
-                                            <em>Select category</em>
-                                        </MenuItem>
-                                        {categories.map((cat) => (
-                                            <MenuItem key={cat.id} value={cat.id}>
-                                                {cat.name}
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
-                                <Box mt={1}>
-                                    <Button size="small" onClick={() => setIsAddingCustomCategory(true)}>
-                                        + Add custom category
-                                    </Button>
-                                </Box>
-                            </>
-                        ) : (
-                            <Paper elevation={3}
-                                sx={{
-                                    p: 2, mt: 1, mb: 2, borderRadius: 2,
-                                    background: theme.palette.background.paper,
-                                    color: theme.palette.text.primary,
-                                    boxShadow: theme.palette.mode === 'dark' ? '0 2px 12px rgba(0,0,0,0.7)' : undefined,
-                                    border: theme.palette.mode === 'dark' ? '1px solid #333' : '1px solid #e0e0e0',
-                                }}>
-                                <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 500, color: theme.palette.text.primary }}>
-                                    Add Custom Category
-                                </Typography>
-                                <Grid container spacing={2}>
-                                    <Grid item xs={12} sm={7}>
-                                        <TextField
-                                            fullWidth
-                                            label="New Category Name"
-                                            value={newCategoryName}
-                                            onChange={(e) => setNewCategoryName(e.target.value)}
-                                            error={!!error}
-                                            helperText={error}
-                                            sx={{
-                                                background: theme.palette.background.default,
-                                                borderRadius: 1,
-                                                input: { color: theme.palette.text.primary },
-                                                label: { color: theme.palette.text.primary },
-                                            }}
-                                            InputLabelProps={{ style: { color: theme.palette.text.primary, opacity: 0.8 } }}
-                                            InputProps={{ style: { color: theme.palette.text.primary } }}
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12} sm={5}>
-                                        <FormControl fullWidth>
-                                            <InputLabel id="new-category-type-label" sx={{ color: theme.palette.text.primary }}>Type</InputLabel>
-                                            <Select
-                                                labelId="new-category-type-label"
-                                                value={newCategoryType}
-                                                label="Type"
-                                                onChange={e => setNewCategoryType(e.target.value)}
-                                                sx={{
-                                                    background: theme.palette.background.default,
-                                                    borderRadius: 1,
-                                                    color: theme.palette.text.primary,
-                                                }}
-                                                MenuProps={{
-                                                    PaperProps: {
-                                                        style: {
-                                                            backgroundColor: theme.palette.background.paper,
-                                                            color: theme.palette.text.primary,
-                                                        },
-                                                    },
-                                                }}
-                                            >
-                                                <MenuItem value="expense">Expense</MenuItem>
-                                                <MenuItem value="income">Income</MenuItem>
-                                                <MenuItem value="savings">Savings</MenuItem>
-                                            </Select>
-                                        </FormControl>
-                                    </Grid>
-                                </Grid>
-                                <Box mt={2} display="flex" gap={1}>
-                                    <Button
-                                        size="small"
-                                        onClick={handleAddCustomCategory}
-                                        variant="contained"
-                                    >
-                                        Add Category
-                                    </Button>
-                                    <Button
-                                        size="small"
-                                        onClick={() => {
-                                            setIsAddingCustomCategory(false);
-                                            setNewCategoryName('');
-                                            setNewCategoryType('expense');
-                                            setError('');
-                                        }}
-                                    >
-                                        Cancel
-                                    </Button>
-                                </Box>
-                            </Paper>
-                        )}
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                        <TextField
-                            fullWidth
-                            label="Budget Amount"
-                            type="number"
-                            value={budgetAmount}
-                            onChange={handleBudgetAmountChange}
-                            inputProps={{ min: 0, step: 0.01 }}
-                            InputLabelProps={{ shrink: true }}
-                            margin="normal"
-                        />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth margin="normal">
-                            <InputLabel id="period-label" shrink>Period</InputLabel>
-                            <Select
-                                labelId="period-label"
-                                id="period"
-                                value={period}
-                                onChange={handlePeriodChange}
-                                label="Period"
-                            >
-                                <MenuItem value="monthly">Monthly</MenuItem>
-                                <MenuItem value="weekly">Weekly</MenuItem>
-                                <MenuItem value="yearly">Once</MenuItem>
-                            </Select>
-                        </FormControl>
-                    </Grid>
-                    <Grid item xs={12}>
-                        <TextField
-                            fullWidth
-                            label="Start Date"
-                            type="date"
-                            value={startDate}
-                            onChange={handleStartDateChange}
-                            InputLabelProps={{ shrink: true }}
-                        />
-                    </Grid>
-                </Grid>
-                <Box mt={2} display="flex" justifyContent="flex-end">
-                    <Button onClick={onClose} sx={{ mr: 1 }}>
-                        Cancel
-                    </Button>
-                    <Button variant="contained" onClick={handleAddBudget}>
-                        {editingBudget ? 'Update Budget' : 'Add Budget'}
-                    </Button>
-                </Box>
-            </DialogContent>
-        </Dialog>
-    );
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-slate-300 mb-1.5 block">
+              Budget Limit ({currencySymbol})
+            </label>
+            <Input
+              type="number"
+              step="0.01"
+              placeholder="e.g. 500.00"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-slate-300 mb-1.5 block">Period</label>
+            <select
+              value={period}
+              onChange={(e) => setPeriod(e.target.value)}
+              className="h-11 w-full rounded-xl bg-slate-950/80 border border-slate-700/80 px-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
+            >
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-slate-300 mb-1.5 block">Start Date</label>
+            <Input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+          </div>
+
+          <div className="pt-3 flex items-center gap-3">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setIsDrawerOpen(false)}
+              className="flex-1"
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="default"
+              className="flex-1 font-bold"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Saving...' : editingBudget ? 'Update Budget' : 'Create Budget'}
+            </Button>
+          </div>
+        </form>
+      </Sheet>
+
+      {/* Delete Confirmation Modal */}
+      {budgetToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-700/80 p-6 space-y-4 shadow-2xl">
+            <h3 className="font-bold text-lg text-slate-100">Delete Budget?</h3>
+            <p className="text-xs text-slate-300">
+              Are you sure you want to remove this budget allocation? Past transactions will remain untouched.
+            </p>
+            <div className="flex items-center gap-3 pt-2">
+              <Button
+                variant="ghost"
+                className="flex-1"
+                onClick={() => setBudgetToDelete(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1 font-bold"
+                onClick={handleDelete}
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
-
-const BudgetProgressCard = ({ name, period, startDate, spent, amount, remaining, percent, onEdit, onDelete, currencySymbol }) => {
-    const theme = useTheme();
-
-    return (
-    <Card sx={{
-        p: 3,
-        borderRadius: 4,
-        boxShadow: theme.palette.mode === 'dark' ? '0 14px 34px rgba(0,0,0,0.35)' : '0 12px 32px rgba(0,0,0,0.12)',
-        mb: 2,
-        minWidth: 320,
-        border: `1px solid ${theme.palette.divider}`,
-        background: theme.palette.mode === 'dark'
-            ? 'linear-gradient(160deg, rgba(32,42,56,0.95), rgba(25,33,44,0.92))'
-            : 'linear-gradient(160deg, rgba(255,255,255,0.98), rgba(244,251,255,0.92))',
-        transition: 'all 0.25s ease-in-out',
-        '&:hover': {
-            transform: 'translateY(-6px)',
-            boxShadow: theme.palette.mode === 'dark' ? '0 20px 42px rgba(0,0,0,0.42)' : '0 18px 38px rgba(0,0,0,0.2)'
-        }
-    }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{name}</Typography>
-            <Box>
-                <IconButton aria-label="edit" onClick={onEdit}><EditIcon /></IconButton>
-                <IconButton aria-label="delete" onClick={onDelete}><DeleteIcon /></IconButton>
-            </Box>
-        </Box>
-        <Typography variant="subtitle1" color="textSecondary" sx={{ mb: 0.5 }}>
-            {period.charAt(0).toUpperCase() + period.slice(1)} Budget
-        </Typography>
-        <Box display="flex" alignItems="center" color="text.secondary" sx={{ mb: 1 }}>
-            <CalendarTodayIcon sx={{ fontSize: 18, mr: 1 }} />
-            <Typography variant="body2">Started {new Date(startDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</Typography>
-        </Box>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-            <Typography sx={{ fontWeight: 500 }}>{currencySymbol}{spent.toFixed(2)}</Typography>
-            <Typography sx={{ fontWeight: 500 }}>of {currencySymbol}{Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Typography>
-        </Box>
-        <LinearProgress
-            variant="determinate"
-            value={percent}
-            sx={{
-                height: 8,
-                borderRadius: 4,
-                backgroundColor: '#f5f5f5',
-                mb: 1,
-                '& .MuiLinearProgress-bar': {
-                    backgroundColor:
-                        percent > 100
-                            ? '#b71c1c'
-                            : percent > 80
-                                ? '#f44336'
-                                : percent > 60
-                                    ? '#ff9800'
-                                    : '#4caf50',
-                },
-            }}
-        />
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Typography variant="body2" color="textSecondary">
-                Remaining: {currencySymbol}{Number(remaining).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-            </Typography>
-            <Typography
-                variant="body2"
-                color="textSecondary"
-                sx={{
-                    color:
-                        percent > 100
-                            ? '#b71c1c'
-                            : percent > 80
-                                ? '#f44336'
-                                : percent > 60
-                                    ? '#ff9800'
-                                    : undefined
-                }}
-            >
-                {percent.toFixed(0)}%
-            </Typography>
-        </Box>
-    </Card>
-    );
-};
 
 export default BudgetsPage;
