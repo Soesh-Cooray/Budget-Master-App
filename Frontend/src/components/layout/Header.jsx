@@ -79,7 +79,7 @@ export function Header({ title, subtitle, userName }) {
               onChange={handleCurrencyChange}
               className="h-9 px-2.5 rounded-xl bg-slate-100 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700/80 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 cursor-pointer transition-colors"
             >
-              {currencyList.slice(0, 15).map((cur) => (
+              {currencyList.map((cur) => (
                 <option key={cur.code} value={cur.code}>
                   {cur.code} ({cur.symbol})
                 </option>
