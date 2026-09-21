@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { isSameMonth, isSameYear, isSameWeek } from 'date-fns';
 import { Plus, PieChart, Edit2, Trash2 } from 'lucide-react';
 import { budgetAPI, categoryAPI, transactionAPI } from '../api';
 import { useCurrency } from '../context/CurrencyContext';
@@ -156,9 +157,25 @@ export function BudgetsPage() {
             const spent = expenses
               .filter((exp) => {
                 const expCatId = typeof exp.category === 'object' ? exp.category.id : exp.category;
-                return Number(expCatId) === Number(bCatId);
+                if (Number(expCatId) !== Number(bCatId)) return false;
+
+                if (!exp.date) return false;
+                const expDate = new Date(exp.date);
+                const now = new Date();
+                
+                const period = budget.period ? budget.period.toLowerCase() : 'monthly';
+                
+                if (period === 'monthly') {
+                  return isSameMonth(expDate, now) && isSameYear(expDate, now);
+                } else if (period === 'yearly') {
+                  return isSameYear(expDate, now);
+                } else if (period === 'weekly') {
+                  return isSameWeek(expDate, now, { weekStartsOn: 1 }) && isSameYear(expDate, now);
+                }
+                
+                return true;
               })
-              .reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
+              .reduce((sum, exp) => sum + Math.abs(parseFloat(exp.amount || 0)), 0);
 
             const total = Number(budget.amount || 1);
             const remaining = Math.max(0, total - spent);
