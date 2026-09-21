@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     Drawer, List, ListItem, ListItemIcon, ListItemText, Toolbar,
-    Typography, IconButton, Box, useTheme, Tooltip
+    Typography, IconButton, Box, useTheme
 } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
@@ -11,13 +11,10 @@ import CreditCardIcon from '@mui/icons-material/CreditCard';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import MenuIcon from '@mui/icons-material/Menu';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
 import SettingsIcon from '@mui/icons-material/Settings';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { DRAWER_WIDTH } from '../constants';
-import { useTheme as useCustomTheme } from '../context/ThemeContext';
 
 const COLLAPSED_WIDTH = 69;
 
@@ -92,7 +89,6 @@ function Sidebar({ open, onClose }) {
     const navigate = useNavigate();
     const location = useLocation();
     const theme = useTheme();
-    const { mode, toggleColorMode } = useCustomTheme();
     const [currency, setCurrency] = useState(localStorage.getItem('currency') || 'USD');
 
     const handleNavigation = (path) => {
@@ -344,123 +340,6 @@ function Sidebar({ open, onClose }) {
             </List>
 
             <Box sx={{ mt: 'auto', p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                {/* Modern Day/Night Mode Switch Icon */}
-                <Tooltip
-                    title={mode === 'dark' ? 'Switch to Day Mode' : 'Switch to Night Mode'}
-                    placement={open ? 'top' : 'right'}
-                    arrow
-                >
-                    <Box
-                        onClick={toggleColorMode}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                toggleColorMode();
-                            }
-                        }}
-                        sx={{
-                            width: open ? '100%' : 44,
-                            height: 44,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: open ? 'flex-start' : 'center',
-                            px: open ? 1.5 : 0,
-                            borderRadius: '12px',
-                            cursor: 'pointer',
-                            border: `1px solid ${theme.palette.divider}`,
-                            background: theme.palette.mode === 'dark'
-                                ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%)'
-                                : 'linear-gradient(135deg, rgba(0, 0, 0, 0.04) 0%, rgba(0, 0, 0, 0.01) 100%)',
-                            boxShadow: theme.palette.mode === 'dark'
-                                ? '0 2px 8px rgba(0, 0, 0, 0.3)'
-                                : '0 2px 8px rgba(0, 0, 0, 0.04)',
-                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                            '&:hover': {
-                                background: theme.palette.mode === 'dark'
-                                    ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 255, 255, 0.06) 100%)'
-                                    : 'linear-gradient(135deg, rgba(25, 118, 210, 0.12) 0%, rgba(0, 0, 0, 0.02) 100%)',
-                                borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 215, 0, 0.5)' : 'rgba(25, 118, 210, 0.4)',
-                                boxShadow: theme.palette.mode === 'dark'
-                                    ? '0 4px 14px rgba(255, 215, 0, 0.25)'
-                                    : '0 4px 14px rgba(25, 118, 210, 0.18)',
-                                transform: 'translateY(-1px)',
-                                '& .theme-toggle-icon': {
-                                    transform: 'rotate(30deg) scale(1.15)',
-                                },
-                            },
-                            '&:active': {
-                                transform: 'scale(0.97)',
-                            },
-                        }}
-                    >
-                        <IconButton
-                            size="small"
-                            disableRipple
-                            sx={{
-                                p: 0.5,
-                                color: mode === 'dark' ? '#ffd54f' : '#1976d2',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                            }}
-                        >
-                            {mode === 'dark' ? (
-                                <Brightness7Icon
-                                    className="theme-toggle-icon"
-                                    sx={{
-                                        fontSize: 22,
-                                        transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease',
-                                        filter: 'drop-shadow(0 0 6px rgba(255, 213, 79, 0.6))',
-                                    }}
-                                />
-                            ) : (
-                                <Brightness4Icon
-                                    className="theme-toggle-icon"
-                                    sx={{
-                                        fontSize: 22,
-                                        transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease',
-                                        filter: 'drop-shadow(0 0 6px rgba(25, 118, 210, 0.4))',
-                                    }}
-                                />
-                            )}
-                        </IconButton>
-
-                        {open && (
-                            <Typography
-                                variant="body2"
-                                sx={{
-                                    ml: 1.5,
-                                    fontWeight: 600,
-                                    color: theme.palette.text.primary,
-                                    whiteSpace: 'nowrap',
-                                    flexGrow: 1,
-                                }}
-                            >
-                                {mode === 'dark' ? 'Night Mode' : 'Day Mode'}
-                            </Typography>
-                        )}
-
-                        {open && (
-                            <Box
-                                sx={{
-                                    fontSize: '0.7rem',
-                                    fontWeight: 700,
-                                    px: 1,
-                                    py: 0.3,
-                                    borderRadius: '6px',
-                                    backgroundColor: mode === 'dark' ? 'rgba(255, 215, 0, 0.15)' : 'rgba(25, 118, 210, 0.1)',
-                                    color: mode === 'dark' ? '#ffd54f' : '#1976d2',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.5px',
-                                }}
-                            >
-                                {mode === 'dark' ? 'Dark' : 'Light'}
-                            </Box>
-                        )}
-                    </Box>
-                </Tooltip>
                 {/* Currency Label */}
                 {open && (
                     <Box sx={{ display: 'flex', alignItems: 'left', justifyContent: 'center', mt: 3, mb: 1, width: '100%' }}>

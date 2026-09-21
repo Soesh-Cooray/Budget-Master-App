@@ -17,6 +17,7 @@ import Sidebar from './components/sidebar';
 import SettingsPage from './components/settings';
 import FAQ from './components/faq';
 import { ThemeProvider } from './context/ThemeContext';
+import ThemeToggle from './components/ThemeToggle';
 import { DRAWER_WIDTH, COLLAPSED_WIDTH } from './constants';
 
 function App() {
@@ -63,6 +64,7 @@ function App() {
     return (
         <ThemeProvider>
             <Analytics />
+            <ThemeToggle />
             <Box sx={{
                 display: 'flex',
                 margin: 0,
