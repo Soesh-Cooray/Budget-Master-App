@@ -90,6 +90,7 @@ export const debtAPI = {
   create: (debtData) => apiClient.post('debts/', debtData),
   update: (id, debtData) => apiClient.put(`debts/${id}/`, debtData),
   delete: (id) => apiClient.delete(`debts/${id}/`),
+  getHistory: (id) => apiClient.get(`debts/${id}/history/`),
 };
 
 //  currency list

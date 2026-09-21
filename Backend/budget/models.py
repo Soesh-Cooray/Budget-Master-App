@@ -106,3 +106,23 @@ class Debt(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.person}"
+
+
+class DebtHistory(models.Model):
+    debt = models.ForeignKey(Debt, on_delete=models.CASCADE, related_name='history')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='debt_histories')
+    action = models.CharField(max_length=50, default='updated')
+    previous_total_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    new_total_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    previous_paid_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    new_paid_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    change_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    reason = models.TextField(blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.debt.title} - {self.action} ({self.created_at})"

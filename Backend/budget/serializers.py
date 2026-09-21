@@ -4,7 +4,7 @@ from rest_framework import serializers
 from django.db.models import Sum
 from .models import Budget, Category, Transaction
 from .models import SavingsGoal
-from .models import Debt
+from .models import Debt, DebtHistory
 
 
 # Serializer for the Category model
@@ -98,8 +98,30 @@ class SavingsGoalSerializer(serializers.ModelSerializer):
         return percent if percent <= 100 else Decimal('100.00')
 
 
+class DebtHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DebtHistory
+        fields = [
+            'id',
+            'debt',
+            'user',
+            'action',
+            'previous_total_amount',
+            'new_total_amount',
+            'previous_paid_amount',
+            'new_paid_amount',
+            'change_amount',
+            'reason',
+            'notes',
+            'created_at',
+        ]
+        read_only_fields = fields
+
+
 class DebtSerializer(serializers.ModelSerializer):
     type = serializers.CharField(source='debt_type')
+    reason = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    history_count = serializers.IntegerField(source='history.count', read_only=True)
 
     class Meta:
         model = Debt
@@ -113,10 +135,12 @@ class DebtSerializer(serializers.ModelSerializer):
             'paid_amount',
             'due_date',
             'notes',
+            'reason',
+            'history_count',
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'user', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'created_at', 'updated_at', 'history_count']
 
     def validate(self, attrs):
         total_amount = attrs.get('total_amount', getattr(self.instance, 'total_amount', None))
@@ -130,5 +154,18 @@ class DebtSerializer(serializers.ModelSerializer):
 
         if total_amount is not None and paid_amount is not None and paid_amount > total_amount:
             raise serializers.ValidationError({'paid_amount': 'Paid amount cannot exceed total amount.'})
+
+        # When updating existing debt, if total_amount or paid_amount changes, reason is mandatory
+        if self.instance is not None:
+            old_total = Decimal(str(self.instance.total_amount))
+            old_paid = Decimal(str(self.instance.paid_amount))
+            new_total = Decimal(str(total_amount)) if total_amount is not None else old_total
+            new_paid = Decimal(str(paid_amount)) if paid_amount is not None else old_paid
+
+            amount_changed = (new_total != old_total) or (new_paid != old_paid)
+            reason = attrs.get('reason', '').strip()
+
+            if amount_changed and not reason:
+                raise serializers.ValidationError({'reason': 'A reason is mandatory when updating the total amount or paid amount.'})
 
         return attrs

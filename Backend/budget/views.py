@@ -1,7 +1,8 @@
+from decimal import Decimal
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.response import Response
-from .models import Budget, Category, Transaction, SavingsGoal, Debt
-from .serializers import BudgetSerializer, CategorySerializer, TransactionSerializer, SavingsGoalSerializer, DebtSerializer
+from .models import Budget, Category, Transaction, SavingsGoal, Debt, DebtHistory
+from .serializers import BudgetSerializer, CategorySerializer, TransactionSerializer, SavingsGoalSerializer, DebtSerializer, DebtHistorySerializer
 from rest_framework.permissions import IsAuthenticated
 
 from rest_framework.decorators import action
@@ -152,8 +153,70 @@ class DebtViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         with transaction.atomic():
-            serializer.save(user=self.request.user)
+            debt = serializer.save(user=self.request.user)
+            DebtHistory.objects.create(
+                debt=debt,
+                user=self.request.user,
+                action='created',
+                new_total_amount=debt.total_amount,
+                new_paid_amount=debt.paid_amount,
+                reason='Initial debt creation',
+                notes=debt.notes or '',
+            )
 
     def perform_update(self, serializer):
         with transaction.atomic():
-            serializer.save(user=self.request.user)
+            instance = self.get_object()
+            old_total = instance.total_amount
+            old_paid = instance.paid_amount
+
+            # Extract reason if passed
+            reason = serializer.validated_data.pop('reason', '').strip()
+
+            debt = serializer.save(user=self.request.user)
+
+            new_total = debt.total_amount
+            new_paid = debt.paid_amount
+
+            amount_changed = (old_total != new_total) or (old_paid != new_paid)
+
+            if amount_changed:
+                if old_paid != new_paid and old_total == new_total:
+                    action = 'payment'
+                    change_amount = new_paid - old_paid
+                else:
+                    action = 'amount_changed'
+                    change_amount = new_total - old_total
+
+                DebtHistory.objects.create(
+                    debt=debt,
+                    user=self.request.user,
+                    action=action,
+                    previous_total_amount=old_total,
+                    new_total_amount=new_total,
+                    previous_paid_amount=old_paid,
+                    new_paid_amount=new_paid,
+                    change_amount=change_amount,
+                    reason=reason or 'Amount modified',
+                    notes=debt.notes or '',
+                )
+            elif reason:
+                DebtHistory.objects.create(
+                    debt=debt,
+                    user=self.request.user,
+                    action='updated',
+                    previous_total_amount=old_total,
+                    new_total_amount=new_total,
+                    previous_paid_amount=old_paid,
+                    new_paid_amount=new_paid,
+                    change_amount=Decimal('0.00'),
+                    reason=reason,
+                    notes=debt.notes or '',
+                )
+
+    @action(detail=True, methods=['get'])
+    def history(self, request, pk=None):
+        debt = self.get_object()
+        histories = debt.history.all().order_by('-created_at')
+        serializer = DebtHistorySerializer(histories, many=True)
+        return Response(serializer.data)
