@@ -83,6 +83,8 @@ function TransactionsPage() {
   const [filterType, setFilterType] = useState('all');
   const [filterCategory, setFilterCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -358,6 +360,17 @@ function TransactionsPage() {
     }
 
 
+    if (startDate) {
+      transactions = transactions.filter(t => new Date(t.date) >= new Date(startDate));
+    }
+    
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      transactions = transactions.filter(t => new Date(t.date) <= end);
+    }
+
+
     transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
     if (sortAmountOrder) {
       transactions.sort((a, b) => sortAmountOrder === 'asc' ? a.amount - b.amount : b.amount - a.amount);
@@ -458,34 +471,56 @@ function TransactionsPage() {
             }}
           />
 
-          <Stack direction="row" spacing={2} width={{ xs: '100%', md: 'auto' }}>
-            <FormControl size="small" sx={{ flex: { xs: 1, md: 'unset' }, minWidth: { xs: 0, md: 150 } }}>
-              <Select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                displayEmpty
-                sx={{ borderRadius: 3 }}
-              >
-                <MenuItem value="all">All Types</MenuItem>
-                <MenuItem value="income"><Stack direction="row" alignItems="center" gap={1}><TrendingUpIcon fontSize="small" color="success"/> Income</Stack></MenuItem>
-                <MenuItem value="expense"><Stack direction="row" alignItems="center" gap={1}><TrendingDownIcon fontSize="small" color="error"/> Expense</Stack></MenuItem>
-                <MenuItem value="savings"><Stack direction="row" alignItems="center" gap={1}><SavingsIcon fontSize="small" color="info"/> Savings</Stack></MenuItem>
-              </Select>
-            </FormControl>
+          <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} width={{ xs: '100%', md: 'auto' }}>
+            <Stack direction="row" spacing={2}>
+              <TextField
+                type="date"
+                label="Start Date"
+                size="small"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                sx={{ flex: 1, minWidth: { xs: 0, md: 130 }, '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
+              />
+              <TextField
+                type="date"
+                label="End Date"
+                size="small"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                sx={{ flex: 1, minWidth: { xs: 0, md: 130 }, '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
+              />
+            </Stack>
+            <Stack direction="row" spacing={2}>
+              <FormControl size="small" sx={{ flex: 1, minWidth: { xs: 0, md: 150 } }}>
+                <Select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  displayEmpty
+                  sx={{ borderRadius: 3 }}
+                >
+                  <MenuItem value="all">All Types</MenuItem>
+                  <MenuItem value="income"><Stack direction="row" alignItems="center" gap={1}><TrendingUpIcon fontSize="small" color="success"/> Income</Stack></MenuItem>
+                  <MenuItem value="expense"><Stack direction="row" alignItems="center" gap={1}><TrendingDownIcon fontSize="small" color="error"/> Expense</Stack></MenuItem>
+                  <MenuItem value="savings"><Stack direction="row" alignItems="center" gap={1}><SavingsIcon fontSize="small" color="info"/> Savings</Stack></MenuItem>
+                </Select>
+              </FormControl>
 
-            <FormControl size="small" sx={{ flex: { xs: 1, md: 'unset' }, minWidth: { xs: 0, md: 150 } }}>
-              <Select
-                value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
-                displayEmpty
-                sx={{ borderRadius: 3 }}
-              >
-                <MenuItem value="all">All Categories</MenuItem>
-                {allCategories.map((cat) => (
-                  <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+              <FormControl size="small" sx={{ flex: 1, minWidth: { xs: 0, md: 150 } }}>
+                <Select
+                  value={filterCategory}
+                  onChange={(e) => setFilterCategory(e.target.value)}
+                  displayEmpty
+                  sx={{ borderRadius: 3 }}
+                >
+                  <MenuItem value="all">All Categories</MenuItem>
+                  {allCategories.map((cat) => (
+                    <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Stack>
           </Stack>
         </Stack>
       </StyledCard>

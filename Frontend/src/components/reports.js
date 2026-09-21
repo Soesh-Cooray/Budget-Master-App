@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Box, Typography, Card, CardContent, Grid, Container, Paper, Tabs, Tab, Select, MenuItem, FormControl, InputLabel, CircularProgress
+  Box, Typography, Card, CardContent, Grid, Container, Paper, Tabs, Tab, Select, MenuItem, FormControl, InputLabel, CircularProgress, TextField
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { Bar, Pie } from 'react-chartjs-2';
@@ -24,23 +24,47 @@ const EXPENSE_COLORS = ['#ff6767', '#ff7878', '#ff8989', '#ffaaaa', '#ffcfcf', '
 const INCOME_COLORS = ['#47894b', '#5ea758', '#8bbd78', '#98c377', '#7be382'];
 const SAVINGS_COLORS = ['#1c96c5', '#20a7db', '#62c1e5', '#a0d9ef', '#cfecf7', '#d2ebff'];
 
-const getMonthsForTimeRange = (timeRange) => {
+const getMonthsForTimeRange = (timeRange, startDate, endDate) => {
   const months = [];
-  const today = new Date();
-  const range = parseInt(timeRange);
+  
+  if (timeRange === 'custom' && startDate && endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const current = new Date(start.getFullYear(), start.getMonth(), 1);
+    const endLimit = new Date(end.getFullYear(), end.getMonth(), 1);
+    
+    while (current <= endLimit) {
+      months.push(current.toLocaleString('default', { month: 'short', year: 'numeric' }));
+      current.setMonth(current.getMonth() + 1);
+    }
+  } else {
+    const today = new Date();
+    let range = parseInt(timeRange);
+    if (isNaN(range)) range = 6;
 
-  for (let i = range - 1; i >= 0; i--) {
-    const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
-    months.push(date.toLocaleString('default', { month: 'short', year: 'numeric' }));
+    for (let i = range - 1; i >= 0; i--) {
+      const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      months.push(date.toLocaleString('default', { month: 'short', year: 'numeric' }));
+    }
   }
   return months;
 };
 
-const filterByTimeRange = (items, timeRange) => {
-  const range = parseInt(timeRange);
-  const today = new Date();
-  const start = new Date(today.getFullYear(), today.getMonth() - (range - 1), 1);
-  const end = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
+const filterByTimeRange = (items, timeRange, startDate, endDate) => {
+  let start, end;
+  
+  if (timeRange === 'custom' && startDate && endDate) {
+    start = new Date(startDate);
+    end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+  } else {
+    let range = parseInt(timeRange);
+    if (isNaN(range)) range = 6;
+    const today = new Date();
+    start = new Date(today.getFullYear(), today.getMonth() - (range - 1), 1);
+    end = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
+  }
+  
   return items.filter(item => {
     const date = new Date(item.date);
     return date >= start && date <= end;
@@ -239,6 +263,8 @@ const TabPanel = (props) => {
 const Reports = () => {
   const [tabValue, setTabValue] = useState(0);
   const [timeRange, setTimeRange] = useState('6');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [financialData, setFinancialData] = useState({
@@ -288,16 +314,16 @@ const Reports = () => {
       const incomes = incomesRes.data;
       const savingsTxns = savingsRes.data;
 
-      const filteredIncomes = filterByTimeRange(incomes, timeRange);
-      const filteredExpenses = filterByTimeRange(expenses, timeRange);
-      const filteredSavings = filterByTimeRange(savingsTxns, timeRange);
+      const filteredIncomes = filterByTimeRange(incomes, timeRange, startDate, endDate);
+      const filteredExpenses = filterByTimeRange(expenses, timeRange, startDate, endDate);
+      const filteredSavings = filterByTimeRange(savingsTxns, timeRange, startDate, endDate);
 
       const totalIncome = filteredIncomes.reduce((sum, income) => sum + parseFloat(income.amount), 0);
       const totalExpenses = filteredExpenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
       const totalSavings = filteredSavings.reduce((sum, saving) => sum + parseFloat(saving.amount), 0);
       const netBalance = totalIncome - totalExpenses - totalSavings;
 
-      const months = getMonthsForTimeRange(timeRange);
+      const months = getMonthsForTimeRange(timeRange, startDate, endDate);
       const incomeVsExpenses = processIncomeVsExpensesData(incomes, expenses, months);
 
       const expenseBreakdown = processExpenseBreakdownData(filteredExpenses);
@@ -323,7 +349,7 @@ const Reports = () => {
       setError('Failed to load reports data');
       setLoading(false);
     }
-  }, [timeRange]);
+  }, [timeRange, startDate, endDate]);
 
   useEffect(() => {
     fetchData();
@@ -452,9 +478,29 @@ const Reports = () => {
         </Typography>
       </Box>
 
-      <Box display="flex" justifyContent="flex-end" mb={2}>
+      <Box display="flex" justifyContent="flex-end" alignItems="center" gap={2} mb={2} flexWrap="wrap">
+        {timeRange === 'custom' && (
+          <Box display="flex" gap={2}>
+            <TextField
+              type="date"
+              label="Start Date"
+              size="small"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              type="date"
+              label="End Date"
+              size="small"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
+          </Box>
+        )}
         <FormControl variant="outlined" size="small" sx={{ minWidth: 150 }}>
-          <InputLabel id="time-range-label">Last</InputLabel>
+          <InputLabel id="time-range-label">Time Range</InputLabel>
           <Select
             labelId="time-range-label"
             id="time-range"
@@ -466,6 +512,7 @@ const Reports = () => {
             <MenuItem value="3">Last 3 months</MenuItem>
             <MenuItem value="6">Last 6 months</MenuItem>
             <MenuItem value="12">Last year</MenuItem>
+            <MenuItem value="custom">Custom Date Range</MenuItem>
           </Select>
         </FormControl>
       </Box>
