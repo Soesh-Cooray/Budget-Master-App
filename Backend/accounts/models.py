@@ -18,11 +18,30 @@ class NotificationSettings(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.reminder_frequency}"
 
+class UserPreferences(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='user_preferences')
+    theme_mode = models.CharField(max_length=10, default='dark')
+    reports_time_range = models.CharField(max_length=10, default='6')
+    reports_start_date = models.CharField(max_length=35, blank=True, default='')
+    reports_end_date = models.CharField(max_length=35, blank=True, default='')
+    dashboard_start_date = models.CharField(max_length=35, blank=True, default='')
+    dashboard_end_date = models.CharField(max_length=35, blank=True, default='')
+    dashboard_preset = models.CharField(max_length=20, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username} Preferences"
+
 @receiver(post_save, sender=User)
 def create_user_notification_settings(sender, instance, created, **kwargs):
     if created:
         NotificationSettings.objects.create(user=instance)
+        UserPreferences.objects.create(user=instance)
 
 @receiver(post_save, sender=User)
 def save_user_notification_settings(sender, instance, **kwargs):
-    instance.notification_settings.save()
+    if hasattr(instance, 'notification_settings'):
+        instance.notification_settings.save()
+    if hasattr(instance, 'user_preferences'):
+        instance.user_preferences.save()

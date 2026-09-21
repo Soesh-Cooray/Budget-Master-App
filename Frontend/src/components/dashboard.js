@@ -16,7 +16,6 @@ import {
   apiClient,
   API_BASE,
 } from '../api';
-import { formatCurrency, getGreeting } from '../lib/utils';
 import { useCurrency } from '../context/CurrencyContext';
 import { StatCard } from './dashboard/StatCard';
 import { IncomeVsExpenseChart } from './dashboard/IncomeVsExpenseChart';
@@ -25,6 +24,13 @@ import { BudgetProgressList } from './dashboard/BudgetProgressList';
 import { RecentTransactions } from './dashboard/RecentTransactions';
 import { TransactionDrawer } from './transactions/TransactionDrawer';
 import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { formatCurrency, getGreeting, cn } from '../lib/utils';
+import {
+  getUserPreferences,
+  saveUserPreferences,
+  syncUserPreferencesFromBackend,
+} from '../services/userPreferences';
 
 export function Dashboard() {
   const [loading, setLoading] = useState(true);
@@ -34,26 +40,93 @@ export function Dashboard() {
   const [username, setUsername] = useState('');
   const [quickAddOpen, setQuickAddOpen] = useState(false);
 
-  // Date filters with localStorage persistence
-  const [startDate, setStartDate] = useState(() => {
-    const saved = localStorage.getItem('dashboardStartDate');
-    return saved ? new Date(saved) : subDays(new Date(), 30);
-  });
-  const [endDate, setEndDate] = useState(() => {
-    const saved = localStorage.getItem('dashboardEndDate');
-    return saved ? new Date(saved) : new Date();
+  // Active Preset state with user preference persistence
+  const [activePreset, setActivePreset] = useState(() => {
+    const prefs = getUserPreferences();
+    return prefs?.dashboard_preset || '30days';
   });
 
-  const handleStartDateChange = (newDate) => {
-    if (!newDate || isNaN(newDate.getTime())) return;
-    setStartDate(newDate);
-    localStorage.setItem('dashboardStartDate', newDate.toISOString());
+  const parseDatePreference = (dateVal, fallback) => {
+    if (!dateVal) return fallback;
+    if (typeof dateVal === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateVal)) {
+      const [y, m, d] = dateVal.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    }
+    const parsed = new Date(dateVal);
+    return isNaN(parsed.getTime()) ? fallback : parsed;
   };
 
-  const handleEndDateChange = (newDate) => {
+  // Date filters with user-scoped preferences and localStorage persistence
+  const [startDate, setStartDate] = useState(() => {
+    const prefs = getUserPreferences();
+    if (prefs?.dashboard_start_date) {
+      return parseDatePreference(prefs.dashboard_start_date, subDays(new Date(), 30));
+    }
+    const saved = localStorage.getItem('dashboardStartDate');
+    return saved ? parseDatePreference(saved, subDays(new Date(), 30)) : subDays(new Date(), 30);
+  });
+
+  const [endDate, setEndDate] = useState(() => {
+    const prefs = getUserPreferences();
+    if (prefs?.dashboard_end_date) {
+      return parseDatePreference(prefs.dashboard_end_date, new Date());
+    }
+    const saved = localStorage.getItem('dashboardEndDate');
+    return saved ? parseDatePreference(saved, new Date()) : new Date();
+  });
+
+  // Sync user preferences on mount and on cross-component updates
+  useEffect(() => {
+    syncUserPreferencesFromBackend().then((prefs) => {
+      if (prefs) {
+        if (prefs.dashboard_preset) setActivePreset(prefs.dashboard_preset);
+        if (prefs.dashboard_start_date) {
+          setStartDate(parseDatePreference(prefs.dashboard_start_date, subDays(new Date(), 30)));
+        }
+        if (prefs.dashboard_end_date) {
+          setEndDate(parseDatePreference(prefs.dashboard_end_date, new Date()));
+        }
+      }
+    });
+
+    const handlePrefUpdate = (e) => {
+      const p = e.detail?.preferences;
+      if (p) {
+        if (p.dashboard_preset) setActivePreset(p.dashboard_preset);
+        if (p.dashboard_start_date) {
+          setStartDate(parseDatePreference(p.dashboard_start_date, subDays(new Date(), 30)));
+        }
+        if (p.dashboard_end_date) {
+          setEndDate(parseDatePreference(p.dashboard_end_date, new Date()));
+        }
+      }
+    };
+    window.addEventListener('user-preferences-updated', handlePrefUpdate);
+    return () => window.removeEventListener('user-preferences-updated', handlePrefUpdate);
+  }, []);
+
+  const handleStartDateChange = (newDate, preset = '') => {
+    if (!newDate || isNaN(newDate.getTime())) return;
+    setStartDate(newDate);
+    if (preset !== undefined) setActivePreset(preset);
+    const dateStr = format(newDate, 'yyyy-MM-dd');
+    localStorage.setItem('dashboardStartDate', dateStr);
+    saveUserPreferences({
+      dashboard_start_date: dateStr,
+      ...(preset !== undefined ? { dashboard_preset: preset } : {}),
+    });
+  };
+
+  const handleEndDateChange = (newDate, preset = '') => {
     if (!newDate || isNaN(newDate.getTime())) return;
     setEndDate(newDate);
-    localStorage.setItem('dashboardEndDate', newDate.toISOString());
+    if (preset !== undefined) setActivePreset(preset);
+    const dateStr = format(newDate, 'yyyy-MM-dd');
+    localStorage.setItem('dashboardEndDate', dateStr);
+    saveUserPreferences({
+      dashboard_end_date: dateStr,
+      ...(preset !== undefined ? { dashboard_preset: preset } : {}),
+    });
   };
 
   // Financial Data state
@@ -202,17 +275,17 @@ export function Dashboard() {
     const today = new Date();
     if (type === '30days') {
       const start = subDays(today, 30);
-      handleStartDateChange(start);
-      handleEndDateChange(today);
+      handleStartDateChange(start, type);
+      handleEndDateChange(today, type);
     } else if (type === 'thisMonth') {
       const start = startOfMonth(today);
       const end = endOfMonth(today);
-      handleStartDateChange(start);
-      handleEndDateChange(end);
+      handleStartDateChange(start, type);
+      handleEndDateChange(end, type);
     } else if (type === 'all') {
       const start = new Date(today.getFullYear(), 0, 1);
-      handleStartDateChange(start);
-      handleEndDateChange(today);
+      handleStartDateChange(start, type);
+      handleEndDateChange(today, type);
     }
   };
 
@@ -267,19 +340,34 @@ export function Dashboard() {
           <div className="flex items-center gap-1.5 flex-wrap">
             <button
               onClick={() => setPresetRange('30days')}
-              className="px-2.5 py-1 rounded-lg bg-slate-200/70 dark:bg-slate-800/80 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors"
+              className={cn(
+                'px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer',
+                activePreset === '30days'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'bg-slate-200/70 dark:bg-slate-800/80 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200'
+              )}
             >
               Last 30 Days
             </button>
             <button
               onClick={() => setPresetRange('thisMonth')}
-              className="px-2.5 py-1 rounded-lg bg-slate-200/70 dark:bg-slate-800/80 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors"
+              className={cn(
+                'px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer',
+                activePreset === 'thisMonth'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'bg-slate-200/70 dark:bg-slate-800/80 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200'
+              )}
             >
               This Month
             </button>
             <button
               onClick={() => setPresetRange('all')}
-              className="px-2.5 py-1 rounded-lg bg-slate-200/70 dark:bg-slate-800/80 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors"
+              className={cn(
+                'px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer',
+                activePreset === 'all'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'bg-slate-200/70 dark:bg-slate-800/80 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200'
+              )}
             >
               Year to Date
             </button>
@@ -293,13 +381,15 @@ export function Dashboard() {
             <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
               From Date
             </label>
-            <input
+            <Input
               type="date"
               value={format(startDate, 'yyyy-MM-dd')}
               onChange={(e) => {
-                if (e.target.value) handleStartDateChange(new Date(e.target.value));
+                if (e.target.value) {
+                  handleStartDateChange(parseDatePreference(e.target.value, new Date()), '');
+                }
               }}
-              className="h-11 w-full rounded-xl bg-slate-100 dark:bg-slate-950/70 border border-slate-300 dark:border-slate-700/80 px-3.5 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500 shadow-inner"
+              className="h-11 text-xs sm:text-sm font-semibold"
             />
           </div>
 
@@ -308,13 +398,15 @@ export function Dashboard() {
             <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
               To Date
             </label>
-            <input
+            <Input
               type="date"
               value={format(endDate, 'yyyy-MM-dd')}
               onChange={(e) => {
-                if (e.target.value) handleEndDateChange(new Date(e.target.value));
+                if (e.target.value) {
+                  handleEndDateChange(parseDatePreference(e.target.value, new Date()), '');
+                }
               }}
-              className="h-11 w-full rounded-xl bg-slate-100 dark:bg-slate-950/70 border border-slate-300 dark:border-slate-700/80 px-3.5 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500 shadow-inner"
+              className="h-11 text-xs sm:text-sm font-semibold"
             />
           </div>
 

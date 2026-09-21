@@ -54,9 +54,22 @@ class CustomUserSerializer(UserSerializer):
         read_only_fields = ('username',)  # Username cannot be changed
 
 
-from .models import NotificationSettings
+from .models import NotificationSettings, UserPreferences
 
 class NotificationSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = NotificationSettings
         fields = ('reminder_frequency', 'reminder_time', 'timezone')
+
+class UserPreferencesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserPreferences
+        fields = (
+            'theme_mode',
+            'reports_time_range',
+            'reports_start_date',
+            'reports_end_date',
+            'dashboard_start_date',
+            'dashboard_end_date',
+            'dashboard_preset',
+        )

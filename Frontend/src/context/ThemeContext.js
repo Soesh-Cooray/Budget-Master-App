@@ -1,6 +1,11 @@
-import React, { createContext, useState, useContext, useMemo, useEffect } from 'react';
+import React, { createContext, useState, useContext, useMemo, useEffect, useCallback } from 'react';
 import { ThemeProvider as MuiThemeProvider, createTheme } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
+import {
+  getUserPreferences,
+  saveUserPreferences,
+  syncUserPreferencesFromBackend,
+} from '../services/userPreferences';
 
 const ThemeContext = createContext();
 
@@ -13,11 +18,31 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider = ({ children }) => {
-  // Dark mode first by default
+  // Read per-user preference if present, fallback to general theme_mode, default to dark
   const [mode, setMode] = useState(() => {
+    const prefs = getUserPreferences();
+    if (prefs?.theme_mode) return prefs.theme_mode;
     const saved = localStorage.getItem('theme_mode');
     return saved ? saved : 'dark';
   });
+
+  // Sync user preferences on mount and on cross-component updates
+  useEffect(() => {
+    syncUserPreferencesFromBackend().then((prefs) => {
+      if (prefs?.theme_mode) {
+        setMode(prefs.theme_mode);
+      }
+    });
+
+    const handlePrefUpdate = (e) => {
+      if (e.detail?.preferences?.theme_mode) {
+        setMode(e.detail.preferences.theme_mode);
+      }
+    };
+
+    window.addEventListener('user-preferences-updated', handlePrefUpdate);
+    return () => window.removeEventListener('user-preferences-updated', handlePrefUpdate);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('theme_mode', mode);
@@ -31,9 +56,18 @@ export const ThemeProvider = ({ children }) => {
     }
   }, [mode]);
 
-  const toggleColorMode = () => {
-    setMode((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  };
+  const toggleColorMode = useCallback(() => {
+    setMode((prev) => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      saveUserPreferences({ theme_mode: next });
+      return next;
+    });
+  }, []);
+
+  const updateMode = useCallback((newMode) => {
+    setMode(newMode);
+    saveUserPreferences({ theme_mode: newMode });
+  }, []);
 
   const muiTheme = useMemo(
     () =>
@@ -93,9 +127,9 @@ export const ThemeProvider = ({ children }) => {
       mode,
       isDark: mode === 'dark',
       toggleColorMode,
-      setMode,
+      setMode: updateMode,
     }),
-    [mode]
+    [mode, toggleColorMode, updateMode]
   );
 
   return (

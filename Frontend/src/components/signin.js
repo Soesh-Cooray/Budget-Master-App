@@ -4,6 +4,7 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE } from '../api';
+import { syncUserPreferencesFromBackend } from '../services/userPreferences';
 
 function SignInPage() {
   const theme = useTheme();
@@ -30,6 +31,9 @@ function SignInPage() {
 
       localStorage.setItem('accessToken', response.data.access);
       localStorage.setItem('refreshToken', response.data.refresh);
+      try {
+        await syncUserPreferencesFromBackend();
+      } catch (_) {}
       navigate('/dashboard');
     } catch (error) {
       if (error.response && error.response.data) {

@@ -42,6 +42,11 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui/
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { StatCard } from './dashboard/StatCard';
+import {
+  getUserPreferences,
+  saveUserPreferences,
+  syncUserPreferencesFromBackend,
+} from '../services/userPreferences';
 
 // Curated high-contrast, accessible color palette for categories
 const CATEGORY_COLORS = [
@@ -131,13 +136,24 @@ export default function Reports() {
   const { isDark } = useTheme();
 
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'expenses' | 'income' | 'savings' | 'trends'
-  const [timeRange, setTimeRange] = useState('6');
+
+  // Initialize from saved user preferences or default to current month
+  const [timeRange, setTimeRange] = useState(() => {
+    const prefs = getUserPreferences();
+    return prefs?.reports_time_range || '6';
+  });
+
   const [startDate, setStartDate] = useState(() => {
+    const prefs = getUserPreferences();
+    if (prefs?.reports_start_date) return prefs.reports_start_date;
     const today = new Date();
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
     return firstDay.toISOString().split('T')[0];
   });
+
   const [endDate, setEndDate] = useState(() => {
+    const prefs = getUserPreferences();
+    if (prefs?.reports_end_date) return prefs.reports_end_date;
     const today = new Date();
     const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
     return lastDay.toISOString().split('T')[0];
@@ -153,6 +169,28 @@ export default function Reports() {
 
   // Active hovered segment in Donut charts
   const [hoveredCategory, setHoveredCategory] = useState(null);
+
+  // Sync user preferences from database/remote on mount and listen to cross-component changes
+  useEffect(() => {
+    syncUserPreferencesFromBackend().then((prefs) => {
+      if (prefs) {
+        if (prefs.reports_time_range) setTimeRange(prefs.reports_time_range);
+        if (prefs.reports_start_date) setStartDate(prefs.reports_start_date);
+        if (prefs.reports_end_date) setEndDate(prefs.reports_end_date);
+      }
+    });
+
+    const handlePrefUpdate = (e) => {
+      const p = e.detail?.preferences;
+      if (p) {
+        if (p.reports_time_range) setTimeRange(p.reports_time_range);
+        if (p.reports_start_date) setStartDate(p.reports_start_date);
+        if (p.reports_end_date) setEndDate(p.reports_end_date);
+      }
+    };
+    window.addEventListener('user-preferences-updated', handlePrefUpdate);
+    return () => window.removeEventListener('user-preferences-updated', handlePrefUpdate);
+  }, []);
 
   const fetchData = useCallback(async () => {
     try {
@@ -178,15 +216,21 @@ export default function Reports() {
     fetchData();
   }, [fetchData]);
 
-  // Handle Quick Range Presets
+  // Handle Quick Range Presets: ONLY changes the interval period count; preserves custom dates!
   const handleQuickPreset = (months) => {
-    setTimeRange(String(months));
-    const today = new Date();
-    const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-    const start = shiftMonth(end, -(months - 1));
-    start.setDate(1);
-    setStartDate(start.toISOString().split('T')[0]);
-    setEndDate(end.toISOString().split('T')[0]);
+    const rangeStr = String(months);
+    setTimeRange(rangeStr);
+    saveUserPreferences({ reports_time_range: rangeStr });
+  };
+
+  const handleStartDateChange = (val) => {
+    setStartDate(val);
+    saveUserPreferences({ reports_start_date: val });
+  };
+
+  const handleEndDateChange = (val) => {
+    setEndDate(val);
+    saveUserPreferences({ reports_end_date: val });
   };
 
   // Process periods and metrics
@@ -459,7 +503,7 @@ export default function Reports() {
               <Input
                 type="date"
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                onChange={(e) => handleStartDateChange(e.target.value)}
                 className="h-9 text-xs"
               />
             </div>
@@ -468,7 +512,7 @@ export default function Reports() {
               <Input
                 type="date"
                 value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                onChange={(e) => handleEndDateChange(e.target.value)}
                 className="h-9 text-xs"
               />
             </div>
