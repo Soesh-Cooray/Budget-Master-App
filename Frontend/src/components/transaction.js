@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, ReceiptText, ArrowUpDown, AlertCircle } from 'lucide-react';
-import { transactionAPI, categoryAPI, getCurrencySymbol } from '../api';
+import { Plus, ReceiptText, AlertCircle } from 'lucide-react';
+import { transactionAPI, categoryAPI } from '../api';
+import { useCurrency } from '../context/CurrencyContext';
 import { TransactionFilters } from './transactions/TransactionFilters';
 import { TransactionRow } from './transactions/TransactionRow';
 import { TransactionDrawer } from './transactions/TransactionDrawer';
@@ -12,7 +13,7 @@ export function TransactionsPage() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currencySymbol, setCurrencySymbol] = useState(getCurrencySymbol());
+  const { currencySymbol } = useCurrency();
 
   // Filter and search state
   const [searchTerm, setSearchTerm] = useState('');
@@ -20,7 +21,7 @@ export function TransactionsPage() {
   const [filterCategory, setFilterCategory] = useState('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [sortOrder, setSortOrder] = useState(null); // 'asc' | 'desc' | null
+  const [sortOrder, setSortOrder] = useState(null);
 
   // Drawer / Modal state
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -28,12 +29,6 @@ export function TransactionsPage() {
 
   // Delete modal state
   const [transactionToDelete, setTransactionToDelete] = useState(null);
-
-  useEffect(() => {
-    const updateCurrency = () => setCurrencySymbol(getCurrencySymbol());
-    window.addEventListener('currencyChange', updateCurrency);
-    return () => window.removeEventListener('currencyChange', updateCurrency);
-  }, []);
 
   const fetchData = useCallback(async () => {
     try {
@@ -103,27 +98,22 @@ export function TransactionsPage() {
   // Filter and Sort Pipeline
   const filteredTransactions = transactions
     .filter((txn) => {
-      // Search term
       if (searchTerm) {
         const query = searchTerm.toLowerCase();
         const descMatch = (txn.description || '').toLowerCase().includes(query);
         const catMatch = (txn.category_name || '').toLowerCase().includes(query);
         if (!descMatch && !catMatch) return false;
       }
-      // Type
       if (filterType !== 'all' && txn.transaction_type !== filterType) {
         return false;
       }
-      // Category
       if (filterCategory !== 'all') {
         const catId = typeof txn.category === 'object' ? txn.category.id : txn.category;
         if (Number(catId) !== Number(filterCategory)) return false;
       }
-      // Start Date
       if (startDate && new Date(txn.date) < new Date(startDate)) {
         return false;
       }
-      // End Date
       if (endDate) {
         const end = new Date(endDate);
         end.setHours(23, 59, 59, 999);
@@ -159,17 +149,17 @@ export function TransactionsPage() {
   return (
     <div className="w-full min-h-screen px-4 sm:px-6 md:px-8 py-6 max-w-7xl mx-auto space-y-6 pb-24 md:pb-12">
       {/* Top Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800/80 shadow-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-white via-indigo-50/50 to-white dark:from-slate-900 dark:via-indigo-950/40 dark:to-slate-900 border border-slate-200/90 dark:border-slate-800/80 shadow-sm dark:shadow-xl transition-colors duration-200">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-semibold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20">
+            <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20">
               Transactions
             </span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
             Financial Activity
           </h2>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
             Search, filter, edit, or log daily cashflow records.
           </p>
         </div>
@@ -207,7 +197,7 @@ export function TransactionsPage() {
         <>
           {/* Mobile Swipe-Optimized Card List */}
           <div className="md:hidden space-y-2">
-            <p className="text-xs text-slate-400 px-1 mb-2">
+            <p className="text-xs text-slate-500 dark:text-slate-400 px-1 mb-2">
               💡 Swipe right to edit • Swipe left to delete
             </p>
             {filteredTransactions.map((txn) => (
@@ -226,7 +216,7 @@ export function TransactionsPage() {
             <CardContent className="p-0">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-800 bg-slate-900/80 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     <th className="py-3 px-4">Description</th>
                     <th className="py-3 px-4">Date</th>
                     <th className="py-3 px-4">Category</th>
@@ -252,11 +242,11 @@ export function TransactionsPage() {
         </>
       ) : (
         <Card className="p-12 text-center">
-          <div className="flex flex-col items-center justify-center text-slate-400 space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-slate-800/80 flex items-center justify-center text-slate-400">
+          <div className="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800/80 flex items-center justify-center text-slate-400">
               <ReceiptText className="w-6 h-6" />
             </div>
-            <p className="font-semibold text-slate-200">No transactions match your criteria</p>
+            <p className="font-semibold text-slate-800 dark:text-slate-200">No transactions match your criteria</p>
             <p className="text-xs text-slate-500 max-w-sm">
               Try adjusting your search terms or clearing active filters to see your records.
             </p>
@@ -284,14 +274,14 @@ export function TransactionsPage() {
       {/* Delete Confirmation Modal */}
       {transactionToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-700/80 p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center gap-3 text-rose-400">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center gap-3 text-rose-500 dark:text-rose-400">
               <AlertCircle className="w-6 h-6 shrink-0" />
-              <h3 className="font-bold text-lg text-slate-100">Delete Entry?</h3>
+              <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100">Delete Entry?</h3>
             </div>
-            <p className="text-xs text-slate-300">
+            <p className="text-xs text-slate-600 dark:text-slate-300">
               Are you sure you want to permanently delete "
-              <strong className="text-white">{transactionToDelete.description}</strong>"? This action cannot be reversed.
+              <strong className="text-slate-900 dark:text-white">{transactionToDelete.description}</strong>"? This action cannot be reversed.
             </p>
             <div className="flex items-center gap-3 pt-2">
               <Button

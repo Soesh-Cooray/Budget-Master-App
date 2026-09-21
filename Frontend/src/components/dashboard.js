@@ -6,7 +6,6 @@ import {
   PiggyBank,
   Plus,
   Calendar,
-  Sparkles,
   RefreshCw,
 } from 'lucide-react';
 import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
@@ -14,12 +13,11 @@ import {
   transactionAPI,
   budgetAPI,
   categoryAPI,
-  savingsGoalAPI,
-  getCurrencySymbol,
   apiClient,
   API_BASE,
 } from '../api';
 import { formatCurrency, getGreeting } from '../lib/utils';
+import { useCurrency } from '../context/CurrencyContext';
 import { StatCard } from './dashboard/StatCard';
 import { IncomeVsExpenseChart } from './dashboard/IncomeVsExpenseChart';
 import { ExpenseDonutChart } from './dashboard/ExpenseDonutChart';
@@ -31,7 +29,7 @@ import { Button } from './ui/button';
 export function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currencySymbol, setCurrencySymbol] = useState(getCurrencySymbol());
+  const { currencySymbol } = useCurrency();
   const [firstName, setFirstName] = useState('');
   const [username, setUsername] = useState('');
   const [quickAddOpen, setQuickAddOpen] = useState(false);
@@ -58,13 +56,6 @@ export function Dashboard() {
   const [recentTransactions, setRecentTransactions] = useState([]);
   const [recentBudgets, setRecentBudgets] = useState([]);
   const [categories, setCategories] = useState([]);
-
-  // Listen for currency updates
-  useEffect(() => {
-    const updateCurrency = () => setCurrencySymbol(getCurrencySymbol());
-    window.addEventListener('currencyChange', updateCurrency);
-    return () => window.removeEventListener('currencyChange', updateCurrency);
-  }, []);
 
   // Fetch user profile info
   const fetchUserInfo = async () => {
@@ -133,7 +124,6 @@ export function Dashboard() {
 
       const cashflowSeries = Object.values(monthMap);
       if (cashflowSeries.length === 0) {
-        // Fallback smooth baseline
         cashflowSeries.push({ name: 'Start', income: 0, expense: 0 });
         cashflowSeries.push({ name: 'Current', income: totalIncome, expense: totalExpenses });
       }
@@ -225,18 +215,21 @@ export function Dashboard() {
   return (
     <div className="w-full min-h-screen px-4 sm:px-6 md:px-8 py-6 max-w-7xl mx-auto space-y-6 pb-24 md:pb-12">
       {/* Top Welcome Hero Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800/80 shadow-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-white via-indigo-50/50 to-white dark:from-slate-900 dark:via-indigo-950/40 dark:to-slate-900 border border-slate-200/90 dark:border-slate-800/80 shadow-sm dark:shadow-xl transition-colors duration-200">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-semibold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20">
+            <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20">
               Overview
             </span>
-            <span className="text-xs text-slate-400">{format(new Date(), 'EEEE, MMMM d, yyyy')}</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              {format(new Date(), 'EEEE, MMMM d, yyyy')}
+            </span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight">
-            {getGreeting()}, <span className="text-indigo-400">{displayName}</span>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+            {getGreeting()},{' '}
+            <span className="text-indigo-600 dark:text-indigo-400">{displayName}</span>
           </h2>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
             Here's a breakdown of your current liquidity, burn rate, and spending targets.
           </p>
         </div>
@@ -246,7 +239,7 @@ export function Dashboard() {
           <Button
             onClick={() => fetchData()}
             variant="outline"
-            className="rounded-xl px-3 text-slate-300 hover:text-white"
+            className="rounded-xl px-3 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
             title="Refresh metrics"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -265,31 +258,31 @@ export function Dashboard() {
       {/* Date Filter Strip */}
       <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-2xl glass-panel text-xs">
         <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
-          <span className="font-semibold text-slate-300">Period:</span>
+          <Calendar className="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" />
+          <span className="font-semibold text-slate-700 dark:text-slate-300">Period:</span>
           <div className="flex items-center gap-1.5 flex-wrap">
             <button
               onClick={() => setPresetRange('30days')}
-              className="px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 transition-colors"
+              className="px-2.5 py-1 rounded-lg bg-slate-200/70 dark:bg-slate-800/80 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors"
             >
               Last 30 Days
             </button>
             <button
               onClick={() => setPresetRange('thisMonth')}
-              className="px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 transition-colors"
+              className="px-2.5 py-1 rounded-lg bg-slate-200/70 dark:bg-slate-800/80 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors"
             >
               This Month
             </button>
             <button
               onClick={() => setPresetRange('all')}
-              className="px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 transition-colors"
+              className="px-2.5 py-1 rounded-lg bg-slate-200/70 dark:bg-slate-800/80 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors"
             >
               Year to Date
             </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-slate-400 font-mono text-[11px]">
+        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-mono text-[11px]">
           <span>{format(startDate, 'MMM d, yyyy')}</span>
           <span>→</span>
           <span>{format(endDate, 'MMM d, yyyy')}</span>

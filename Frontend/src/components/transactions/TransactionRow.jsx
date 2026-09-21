@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { Edit2, Trash2, ArrowUpRight, ArrowDownRight, PiggyBank } from 'lucide-react';
 import { formatCurrency, getCategoryBadgeStyle } from '../../lib/utils';
@@ -35,9 +35,9 @@ export function TransactionRow({
           {/* Swipe Right = Edit (Indigo) */}
           <motion.div
             style={{ opacity: editOpacity }}
-            className="flex items-center gap-1.5 text-indigo-400 font-bold text-xs"
+            className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 font-bold text-xs"
           >
-            <div className="w-8 h-8 rounded-full bg-indigo-600/30 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center">
               <Edit2 className="w-4 h-4" />
             </div>
             <span>Edit</span>
@@ -46,10 +46,10 @@ export function TransactionRow({
           {/* Swipe Left = Delete (Rose) */}
           <motion.div
             style={{ opacity: deleteOpacity }}
-            className="flex items-center gap-1.5 text-rose-400 font-bold text-xs"
+            className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400 font-bold text-xs"
           >
             <span>Delete</span>
-            <div className="w-8 h-8 rounded-full bg-rose-600/30 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-rose-500/20 flex items-center justify-center">
               <Trash2 className="w-4 h-4" />
             </div>
           </motion.div>
@@ -62,17 +62,17 @@ export function TransactionRow({
           dragConstraints={{ left: -100, right: 100 }}
           dragElastic={0.15}
           onDragEnd={handleDragEnd}
-          className="relative z-10 p-4 rounded-2xl bg-slate-900 border border-slate-800/80 shadow-md flex items-center justify-between gap-3 active:cursor-grabbing cursor-grab select-none"
+          className="relative z-10 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800/80 shadow-sm dark:shadow-md flex items-center justify-between gap-3 active:cursor-grabbing cursor-grab select-none"
         >
           {/* Icon & Details */}
           <div className="flex items-center gap-3 min-w-0">
             <div
               className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border ${
                 isIncome
-                  ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
                   : isSavings
-                  ? 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30'
-                  : 'bg-rose-500/15 text-rose-400 border-rose-500/30'
+                  ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/30'
+                  : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30'
               }`}
             >
               {isIncome ? (
@@ -85,9 +85,11 @@ export function TransactionRow({
             </div>
 
             <div className="min-w-0">
-              <p className="text-sm font-bold text-slate-100 truncate">{transaction.description}</p>
+              <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+                {transaction.description}
+              </p>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-xs text-slate-400">{transaction.date}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">{transaction.date}</span>
                 <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${badge.bg}`}>
                   {transaction.category_name || 'General'}
                 </span>
@@ -100,16 +102,16 @@ export function TransactionRow({
             <div
               className={`font-mono font-bold text-base tabular-nums ${
                 isIncome
-                  ? 'text-emerald-400'
+                  ? 'text-emerald-600 dark:text-emerald-400'
                   : isSavings
-                  ? 'text-indigo-400'
-                  : 'text-rose-400'
+                  ? 'text-indigo-600 dark:text-indigo-400'
+                  : 'text-rose-600 dark:text-rose-400'
               }`}
             >
               {isIncome ? '+' : isSavings ? '' : '−'}
               {formatCurrency(transaction.amount, currencySymbol)}
             </div>
-            <span className="text-[10px] text-slate-500 uppercase tracking-wider block mt-0.5">
+            <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider block mt-0.5">
               Swipe to action
             </span>
           </div>
@@ -117,16 +119,16 @@ export function TransactionRow({
       </div>
 
       {/* Desktop Table Row */}
-      <tr className="hidden md:table-row hover:bg-slate-800/30 border-b border-slate-800/80 transition-colors group">
+      <tr className="hidden md:table-row hover:bg-slate-50/80 dark:hover:bg-slate-800/30 border-b border-slate-200/80 dark:border-slate-800/80 transition-colors group">
         <td className="py-3.5 px-4">
           <div className="flex items-center gap-3">
             <div
               className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border ${
                 isIncome
-                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25'
+                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25'
                   : isSavings
-                  ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/25'
-                  : 'bg-rose-500/10 text-rose-400 border-rose-500/25'
+                  ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/25'
+                  : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25'
               }`}
             >
               {isIncome ? (
@@ -137,12 +139,12 @@ export function TransactionRow({
                 <ArrowDownRight className="w-4 h-4" />
               )}
             </div>
-            <span className="font-semibold text-sm text-slate-100 truncate max-w-xs">
+            <span className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate max-w-xs">
               {transaction.description}
             </span>
           </div>
         </td>
-        <td className="py-3.5 px-4 text-xs font-medium text-slate-400">{transaction.date}</td>
+        <td className="py-3.5 px-4 text-xs font-medium text-slate-500 dark:text-slate-400">{transaction.date}</td>
         <td className="py-3.5 px-4">
           <span className={`inline-block text-xs font-medium px-2.5 py-0.5 rounded-full border ${badge.bg}`}>
             {transaction.category_name || 'General'}
@@ -152,10 +154,10 @@ export function TransactionRow({
           <span
             className={`text-xs font-semibold capitalize ${
               isIncome
-                ? 'text-emerald-400'
+                ? 'text-emerald-600 dark:text-emerald-400'
                 : isSavings
-                ? 'text-indigo-400'
-                : 'text-rose-400'
+                ? 'text-indigo-600 dark:text-indigo-400'
+                : 'text-rose-600 dark:text-rose-400'
             }`}
           >
             {transaction.transaction_type}
@@ -165,10 +167,10 @@ export function TransactionRow({
           <span
             className={`font-mono font-bold text-sm tabular-nums ${
               isIncome
-                ? 'text-emerald-400'
+                ? 'text-emerald-600 dark:text-emerald-400'
                 : isSavings
-                ? 'text-indigo-400'
-                : 'text-rose-400'
+                ? 'text-indigo-600 dark:text-indigo-400'
+                : 'text-rose-600 dark:text-rose-400'
             }`}
           >
             {isIncome ? '+' : isSavings ? '' : '−'}
@@ -179,14 +181,14 @@ export function TransactionRow({
           <div className="flex items-center justify-end gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
             <button
               onClick={() => onEdit(transaction)}
-              className="p-2 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-slate-800 transition-colors"
+              className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               title="Edit"
             >
               <Edit2 className="w-4 h-4" />
             </button>
             <button
               onClick={() => onDelete(transaction)}
-              className="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/30 transition-colors"
+              className="p-2 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
               title="Delete"
             >
               <Trash2 className="w-4 h-4" />

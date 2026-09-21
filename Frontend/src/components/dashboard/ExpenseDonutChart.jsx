@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/card';
 import { formatCurrency } from '../../lib/utils';
+import { useTheme } from '../../context/ThemeContext';
 
 const DEFAULT_COLORS = [
   '#f43f5e', // Rose
@@ -16,6 +17,7 @@ const DEFAULT_COLORS = [
 
 export function ExpenseDonutChart({ data = [], totalSpent = 0, currencySymbol = '$' }) {
   const [activeIndex, setActiveIndex] = useState(null);
+  const { isDark } = useTheme();
 
   const chartData = (data || []).map((item, idx) => ({
     name: item.name || item.category || 'Other',
@@ -28,12 +30,12 @@ export function ExpenseDonutChart({ data = [], totalSpent = 0, currencySymbol = 
       const item = payload[0];
       const percentage = totalSpent > 0 ? ((item.value / totalSpent) * 100).toFixed(1) : 0;
       return (
-        <div className="p-3 rounded-xl bg-slate-900/95 border border-slate-700/80 shadow-2xl backdrop-blur-xl text-xs space-y-1">
+        <div className="p-3 rounded-xl bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-700/80 shadow-xl backdrop-blur-xl text-xs space-y-1">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.payload.color }} />
-            <span className="font-semibold text-slate-200">{item.name}</span>
+            <span className="font-semibold text-slate-800 dark:text-slate-200">{item.name}</span>
           </div>
-          <p className="font-mono font-bold text-slate-100 tabular-nums">
+          <p className="font-mono font-bold text-slate-900 dark:text-slate-100 tabular-nums">
             {formatCurrency(item.value, currencySymbol)} ({percentage}%)
           </p>
         </div>
@@ -64,7 +66,7 @@ export function ExpenseDonutChart({ data = [], totalSpent = 0, currencySymbol = 
                     outerRadius={90}
                     paddingAngle={3}
                     dataKey="value"
-                    stroke="#0f172a"
+                    stroke={isDark ? '#0f172a' : '#ffffff'}
                     strokeWidth={2}
                     onMouseEnter={(_, index) => setActiveIndex(index)}
                     onMouseLeave={() => setActiveIndex(null)}
@@ -83,27 +85,31 @@ export function ExpenseDonutChart({ data = [], totalSpent = 0, currencySymbol = 
 
               {/* Center Total Overlay */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                   Total Spent
                 </span>
-                <span className="text-lg sm:text-xl font-bold font-mono text-slate-100 tabular-nums">
+                <span className="text-lg sm:text-xl font-bold font-mono text-slate-900 dark:text-slate-100 tabular-nums">
                   {formatCurrency(totalSpent, currencySymbol)}
                 </span>
               </div>
             </div>
 
             {/* Category Legend Badges */}
-            <div className="w-full flex flex-wrap justify-center gap-2 mt-2 pt-3 border-t border-slate-800/80 max-h-28 overflow-y-auto">
+            <div className="w-full flex flex-wrap justify-center gap-2 mt-2 pt-3 border-t border-slate-200/80 dark:border-slate-800/80 max-h-28 overflow-y-auto">
               {chartData.map((item, idx) => {
                 const pct = totalSpent > 0 ? ((item.value / totalSpent) * 100).toFixed(0) : 0;
                 return (
                   <div
                     key={idx}
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800/50 border border-slate-700/50 text-xs"
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 text-xs"
                   >
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-                    <span className="text-slate-300 font-medium truncate max-w-[100px]">{item.name}</span>
-                    <span className="text-slate-400 font-mono tabular-nums text-[11px]">{pct}%</span>
+                    <span className="text-slate-700 dark:text-slate-300 font-medium truncate max-w-[100px]">
+                      {item.name}
+                    </span>
+                    <span className="text-slate-500 dark:text-slate-400 font-mono tabular-nums text-[11px]">
+                      {pct}%
+                    </span>
                   </div>
                 );
               })}

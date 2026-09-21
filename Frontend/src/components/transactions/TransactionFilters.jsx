@@ -34,12 +34,12 @@ export function TransactionFilters({
               placeholder="Search by description..."
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="h-11 w-full rounded-xl bg-slate-950/70 border border-slate-700/80 pl-10 pr-4 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-indigo-500"
+              className="h-11 w-full rounded-xl bg-slate-100 dark:bg-slate-950/70 border border-slate-300 dark:border-slate-700/80 pl-10 pr-4 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
             />
           </div>
 
           {/* Type Segmented Control */}
-          <div className="flex p-1 rounded-xl bg-slate-950/70 border border-slate-800 shrink-0">
+          <div className="flex p-1 rounded-xl bg-slate-100 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 shrink-0">
             {[
               { id: 'all', label: 'All' },
               { id: 'expense', label: 'Expenses' },
@@ -52,7 +52,7 @@ export function TransactionFilters({
                 className={`h-9 px-3 sm:px-4 rounded-lg text-xs font-semibold transition-all ${
                   filterType === t.id
                     ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                    : 'text-slate-400 hover:text-slate-200'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                 }`}
               >
                 {t.label}
@@ -68,7 +68,7 @@ export function TransactionFilters({
             <select
               value={filterCategory}
               onChange={(e) => onCategoryChange(e.target.value)}
-              className="h-11 w-full rounded-xl bg-slate-950/70 border border-slate-700/80 px-3 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+              className="h-11 w-full rounded-xl bg-slate-100 dark:bg-slate-950/70 border border-slate-300 dark:border-slate-700/80 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500"
             >
               <option value="all">All Categories</option>
               {categories.map((cat) => (
@@ -86,7 +86,7 @@ export function TransactionFilters({
               value={startDate}
               onChange={(e) => onStartDateChange(e.target.value)}
               placeholder="From Date"
-              className="h-11 w-full rounded-xl bg-slate-950/70 border border-slate-700/80 px-3 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+              className="h-11 w-full rounded-xl bg-slate-100 dark:bg-slate-950/70 border border-slate-300 dark:border-slate-700/80 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500"
             />
           </div>
 
@@ -97,7 +97,7 @@ export function TransactionFilters({
               value={endDate}
               onChange={(e) => onEndDateChange(e.target.value)}
               placeholder="To Date"
-              className="h-11 w-full rounded-xl bg-slate-950/70 border border-slate-700/80 px-3 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+              className="h-11 w-full rounded-xl bg-slate-100 dark:bg-slate-950/70 border border-slate-300 dark:border-slate-700/80 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500"
             />
           </div>
 
@@ -107,8 +107,8 @@ export function TransactionFilters({
               onClick={onToggleSort}
               className={`h-11 flex-1 rounded-xl border flex items-center justify-center gap-1.5 text-xs font-semibold transition-colors ${
                 sortOrder
-                  ? 'bg-indigo-600/20 text-indigo-400 border-indigo-500/30'
-                  : 'bg-slate-950/70 border-slate-700/80 text-slate-300 hover:bg-slate-800'
+                  ? 'bg-indigo-600/10 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border-indigo-500/30'
+                  : 'bg-slate-100 dark:bg-slate-950/70 border-slate-300 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
               }`}
               title="Sort by amount"
             >
@@ -119,7 +119,7 @@ export function TransactionFilters({
             {hasActiveFilters && (
               <button
                 onClick={onReset}
-                className="h-11 px-3 rounded-xl bg-slate-950/70 border border-slate-700/80 text-slate-400 hover:text-rose-400 hover:border-rose-500/30 flex items-center justify-center transition-colors"
+                className="h-11 px-3 rounded-xl bg-slate-100 dark:bg-slate-950/70 border border-slate-300 dark:border-slate-700/80 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:border-rose-500/30 flex items-center justify-center transition-colors"
                 title="Reset filters"
               >
                 <RotateCcw className="w-4 h-4" />

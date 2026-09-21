@@ -52,29 +52,29 @@ export function Sheet({
               }
             }}
             className={cn(
-              'relative z-10 w-full max-h-[90vh] md:max-w-lg md:rounded-2xl rounded-t-3xl bg-slate-900 border-t md:border border-slate-700/80 dark:border-white/10 shadow-2xl overflow-hidden flex flex-col',
+              'relative z-10 w-full max-h-[90vh] md:max-w-lg md:rounded-2xl rounded-t-3xl bg-white dark:bg-slate-900 border-t md:border border-slate-200 dark:border-slate-700/80 shadow-2xl overflow-hidden flex flex-col text-slate-900 dark:text-slate-100',
               'pb-[calc(1.5rem+env(safe-area-inset-bottom))] md:pb-6',
               className
             )}
           >
             {/* Mobile Drag Pill Handle */}
             <div className="md:hidden flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing">
-              <div className="w-12 h-1.5 rounded-full bg-slate-700/80 hover:bg-slate-600 transition-colors" />
+              <div className="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600 transition-colors" />
             </div>
 
             {/* Header */}
-            <div className="flex items-center justify-between px-6 pt-3 pb-3 border-b border-slate-800/80">
+            <div className="flex items-center justify-between px-6 pt-3 pb-3 border-b border-slate-200 dark:border-slate-800/80">
               <div>
                 {title && (
-                  <h3 className="text-lg font-bold text-slate-100">{title}</h3>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{title}</h3>
                 )}
                 {description && (
-                  <p className="text-xs text-slate-400 mt-0.5">{description}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{description}</p>
                 )}
               </div>
               <button
                 onClick={onClose}
-                className="p-2 -mr-2 rounded-full text-slate-400 hover:text-slate-100 hover:bg-slate-800/80 transition-colors touch-target flex items-center justify-center"
+                className="p-2 -mr-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors touch-target flex items-center justify-center"
                 aria-label="Close"
               >
                 <X className="w-5 h-5" />

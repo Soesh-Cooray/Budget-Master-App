@@ -5,8 +5,9 @@ import { Sheet } from '../ui/drawer';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { transactionSchema } from '../../lib/validations';
-import { transactionAPI, categoryAPI, getCurrencySymbol } from '../../api';
-import { Plus, Tag, Calendar, DollarSign, FileText } from 'lucide-react';
+import { transactionAPI, categoryAPI } from '../../api';
+import { useCurrency } from '../../context/CurrencyContext';
+import { Plus } from 'lucide-react';
 
 export function TransactionDrawer({
   isOpen,
@@ -16,7 +17,7 @@ export function TransactionDrawer({
   categories = [],
   onCategoryCreated,
 }) {
-  const [currencySymbol, setCurrencySymbol] = useState(getCurrencySymbol());
+  const { currencySymbol } = useCurrency();
   const [type, setType] = useState(editingTransaction?.transaction_type || 'expense');
   const [showNewCatInput, setShowNewCatInput] = useState(false);
   const [newCatName, setNewCatName] = useState('');
@@ -45,7 +46,6 @@ export function TransactionDrawer({
 
   const currentAmount = watch('amount');
 
-  // Reset or initialize form when drawer opens or editingTransaction changes
   useEffect(() => {
     if (editingTransaction) {
       setType(editingTransaction.transaction_type || 'expense');
@@ -154,17 +154,17 @@ export function TransactionDrawer({
 
         {/* Transaction Type Segmented Controls */}
         <div>
-          <label className="text-xs font-semibold text-slate-300 mb-1.5 block">
+          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
             Transaction Type
           </label>
-          <div className="grid grid-cols-3 gap-2 p-1 rounded-xl bg-slate-950/80 border border-slate-800">
+          <div className="grid grid-cols-3 gap-2 p-1 rounded-xl bg-slate-100 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800">
             <button
               type="button"
               onClick={() => handleTypeSelect('expense')}
               className={`h-10 rounded-lg text-xs font-bold transition-all ${
                 type === 'expense'
                   ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30'
-                  : 'text-slate-400 hover:text-slate-200'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               Expense
@@ -175,7 +175,7 @@ export function TransactionDrawer({
               className={`h-10 rounded-lg text-xs font-bold transition-all ${
                 type === 'income'
                   ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
-                  : 'text-slate-400 hover:text-slate-200'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               Income
@@ -186,7 +186,7 @@ export function TransactionDrawer({
               className={`h-10 rounded-lg text-xs font-bold transition-all ${
                 type === 'savings'
                   ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                  : 'text-slate-400 hover:text-slate-200'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               Savings
@@ -196,7 +196,7 @@ export function TransactionDrawer({
 
         {/* Amount Input with Currency Symbol */}
         <div>
-          <label className="text-xs font-semibold text-slate-300 mb-1.5 block">
+          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
             Amount ({currencySymbol})
           </label>
           <div className="relative">
@@ -208,11 +208,11 @@ export function TransactionDrawer({
               step="0.01"
               placeholder="0.00"
               {...register('amount')}
-              className="h-14 w-full rounded-2xl bg-slate-950/80 border border-slate-700/80 pl-9 pr-4 text-2xl font-bold font-mono text-slate-100 tabular-nums focus:outline-none focus:border-indigo-500 shadow-inner"
+              className="h-14 w-full rounded-2xl bg-slate-100 dark:bg-slate-950/80 border border-slate-300 dark:border-slate-700/80 pl-9 pr-4 text-2xl font-bold font-mono text-slate-900 dark:text-slate-100 tabular-nums focus:outline-none focus:border-indigo-500 shadow-inner"
             />
           </div>
           {errors.amount && (
-            <p className="text-xs text-rose-400 mt-1">{errors.amount.message}</p>
+            <p className="text-xs text-rose-500 mt-1">{errors.amount.message}</p>
           )}
 
           {/* Quick Amount Chips */}
@@ -222,7 +222,7 @@ export function TransactionDrawer({
                 key={amt}
                 type="button"
                 onClick={() => handleQuickAmount(amt)}
-                className="px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 text-xs font-mono font-semibold text-slate-300 active:scale-95 transition-all"
+                className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700/80 border border-slate-300 dark:border-slate-700/60 text-xs font-mono font-semibold text-slate-700 dark:text-slate-300 active:scale-95 transition-all"
               >
                 +{amt}
               </button>
@@ -232,7 +232,7 @@ export function TransactionDrawer({
 
         {/* Description Field */}
         <div>
-          <label className="text-xs font-semibold text-slate-300 mb-1.5 block">
+          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
             Description
           </label>
           <Input
@@ -245,11 +245,11 @@ export function TransactionDrawer({
         {/* Category Selector + Inline Creation */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="text-xs font-semibold text-slate-300">Category</label>
+            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Category</label>
             <button
               type="button"
               onClick={() => setShowNewCatInput(!showNewCatInput)}
-              className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 font-medium"
+              className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 font-medium"
             >
               <Plus className="w-3.5 h-3.5" />
               {showNewCatInput ? 'Choose existing' : 'New category'}
@@ -263,7 +263,7 @@ export function TransactionDrawer({
                 placeholder="Category name..."
                 value={newCatName}
                 onChange={(e) => setNewCatName(e.target.value)}
-                className="h-11 flex-1 rounded-xl bg-slate-950/80 border border-slate-700 px-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
+                className="h-11 flex-1 rounded-xl bg-slate-100 dark:bg-slate-950/80 border border-slate-300 dark:border-slate-700 px-3 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
               />
               <Button type="button" size="sm" onClick={handleCreateCategory} variant="secondary">
                 Add
@@ -272,7 +272,7 @@ export function TransactionDrawer({
           ) : (
             <select
               {...register('category')}
-              className="h-11 w-full rounded-xl bg-slate-950/80 border border-slate-700/80 px-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
+              className="h-11 w-full rounded-xl bg-slate-100 dark:bg-slate-950/80 border border-slate-300 dark:border-slate-700/80 px-3 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
             >
               <option value="">Select a category...</option>
               {filteredCategories.map((cat) => (
@@ -283,13 +283,13 @@ export function TransactionDrawer({
             </select>
           )}
           {errors.category && (
-            <p className="text-xs text-rose-400 mt-1">{errors.category.message}</p>
+            <p className="text-xs text-rose-500 mt-1">{errors.category.message}</p>
           )}
         </div>
 
         {/* Date Field */}
         <div>
-          <label className="text-xs font-semibold text-slate-300 mb-1.5 block">Date</label>
+          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">Date</label>
           <Input type="date" {...register('date')} error={errors.date?.message} />
         </div>
 

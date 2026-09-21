@@ -7,13 +7,15 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from 'recharts';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/card';
 import { formatCurrency } from '../../lib/utils';
+import { useTheme } from '../../context/ThemeContext';
 
 export function IncomeVsExpenseChart({ data = [], currencySymbol = '$' }) {
-  // Custom Dark Glassmorphism Tooltip
+  const { isDark } = useTheme();
+
+  // Responsive Glassmorphism Tooltip for Light & Dark
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       const income = payload.find((p) => p.dataKey === 'income')?.value || 0;
@@ -21,25 +23,27 @@ export function IncomeVsExpenseChart({ data = [], currencySymbol = '$' }) {
       const net = income - expense;
 
       return (
-        <div className="p-3.5 rounded-xl bg-slate-900/95 border border-slate-700/80 shadow-2xl backdrop-blur-xl text-xs space-y-1.5 min-w-[170px]">
-          <p className="font-semibold text-slate-200 border-b border-slate-800 pb-1">{label}</p>
-          <div className="flex justify-between items-center text-emerald-400">
+        <div className="p-3.5 rounded-xl bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-700/80 shadow-xl backdrop-blur-xl text-xs space-y-1.5 min-w-[170px]">
+          <p className="font-semibold text-slate-800 dark:text-slate-200 border-b border-slate-100 dark:border-slate-800 pb-1">
+            {label}
+          </p>
+          <div className="flex justify-between items-center text-emerald-600 dark:text-emerald-400">
             <span>Income:</span>
             <span className="font-mono font-bold tabular-nums">
               {formatCurrency(income, currencySymbol)}
             </span>
           </div>
-          <div className="flex justify-between items-center text-rose-400">
+          <div className="flex justify-between items-center text-rose-600 dark:text-rose-400">
             <span>Expenses:</span>
             <span className="font-mono font-bold tabular-nums">
               {formatCurrency(expense, currencySymbol)}
             </span>
           </div>
-          <div className="flex justify-between items-center pt-1 border-t border-slate-800 text-slate-300 font-semibold">
+          <div className="flex justify-between items-center pt-1 border-t border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-300 font-semibold">
             <span>Net Balance:</span>
             <span
               className={`font-mono font-bold tabular-nums ${
-                net >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                net >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
               }`}
             >
               {net >= 0 ? '+' : ''}
@@ -61,12 +65,12 @@ export function IncomeVsExpenseChart({ data = [], currencySymbol = '$' }) {
             <CardDescription>Income vs spending comparison over time</CardDescription>
           </div>
           <div className="flex items-center gap-4 text-xs font-medium mt-2 sm:mt-0">
-            <span className="flex items-center gap-1.5 text-emerald-400">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50" />
+            <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm" />
               Income
             </span>
-            <span className="flex items-center gap-1.5 text-rose-400">
-              <span className="w-2.5 h-2.5 rounded-full bg-rose-400 shadow-sm shadow-rose-400/50" />
+            <span className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400">
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm" />
               Expenses
             </span>
           </div>
@@ -86,17 +90,22 @@ export function IncomeVsExpenseChart({ data = [], currencySymbol = '$' }) {
                   <stop offset="95%" stopColor="#f43f5e" stopOpacity={0.0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.25} vertical={false} />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={isDark ? '#334155' : '#e2e8f0'}
+                opacity={0.6}
+                vertical={false}
+              />
               <XAxis
                 dataKey="name"
-                stroke="#64748b"
+                stroke={isDark ? '#64748b' : '#94a3b8'}
                 fontSize={11}
                 tickLine={false}
                 axisLine={false}
                 dy={8}
               />
               <YAxis
-                stroke="#64748b"
+                stroke={isDark ? '#64748b' : '#94a3b8'}
                 fontSize={11}
                 tickLine={false}
                 axisLine={false}

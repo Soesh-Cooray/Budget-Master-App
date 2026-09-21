@@ -15,6 +15,7 @@ import SettingsPage from './components/settings';
 import FAQ from './components/faq';
 
 import { ThemeProvider } from './context/ThemeContext';
+import { CurrencyProvider } from './context/CurrencyContext';
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
 import { BottomNav } from './components/layout/BottomNav';
@@ -77,74 +78,75 @@ function App() {
 
   return (
     <ThemeProvider>
-      {/* Global backend trouble alert banner */}
-      <NotificationBanner />
+      <CurrencyProvider>
+        {/* Global backend trouble alert banner */}
+        <NotificationBanner />
 
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans transition-colors duration-300">
-        {isAppShell ? (
-          <div className="flex flex-1 min-h-screen">
-            {/* Desktop Glassy Sidebar */}
-            <Sidebar
-              open={sidebarOpen}
-              onToggle={() => setSidebarOpen((prev) => !prev)}
-            />
+        <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
+          {isAppShell ? (
+            <div className="flex flex-1 min-h-screen">
+              {/* Desktop Glassy Sidebar */}
+              <Sidebar
+                open={sidebarOpen}
+                onToggle={() => setSidebarOpen((prev) => !prev)}
+              />
 
-            {/* Main Content Area */}
-            <div
-              className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${
-                sidebarOpen ? 'md:ml-64' : 'md:ml-20'
-              }`}
-            >
-              {/* Sticky Top Header */}
-              <Header title={getPageTitle()} />
+              {/* Main Content Area */}
+              <div
+                className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${
+                  sidebarOpen ? 'md:ml-64' : 'md:ml-20'
+                }`}
+              >
+                {/* Sticky Top Header */}
+                <Header title={getPageTitle()} />
 
-              {/* Scrollable Page Body */}
-              <main className="flex-1 overflow-x-hidden">
-                <Routes>
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/transaction" element={<TransactionsPage />} />
-                  <Route path="/budgets" element={<BudgetsPage />} />
-                  <Route path="/savings-goals" element={<SavingsGoalsPage />} />
-                  <Route path="/debts" element={<DebtPage />} />
-                  <Route path="/reports" element={<Reports />} />
-                  <Route path="/settings" element={<SettingsPage />} />
-                  <Route path="/faq" element={<FAQ />} />
-                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                </Routes>
-              </main>
+                {/* Scrollable Page Body */}
+                <main className="flex-1 overflow-x-hidden">
+                  <Routes>
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/transaction" element={<TransactionsPage />} />
+                    <Route path="/budgets" element={<BudgetsPage />} />
+                    <Route path="/savings-goals" element={<SavingsGoalsPage />} />
+                    <Route path="/debts" element={<DebtPage />} />
+                    <Route path="/reports" element={<Reports />} />
+                    <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="/faq" element={<FAQ />} />
+                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                  </Routes>
+                </main>
 
-              {/* Mobile Fixed Glassy Bottom Navigation */}
-              <BottomNav onOpenQuickAdd={() => setQuickAddOpen(true)} />
+                {/* Mobile Fixed Glassy Bottom Navigation */}
+                <BottomNav onOpenQuickAdd={() => setQuickAddOpen(true)} />
+              </div>
+
+              {/* Global Rapid Quick-Add Drawer triggered from Mobile Bottom Nav FAB */}
+              <TransactionDrawer
+                isOpen={quickAddOpen}
+                onClose={() => setQuickAddOpen(false)}
+                onSuccess={() => {
+                  window.dispatchEvent(new Event('transaction-created'));
+                }}
+                categories={categories}
+                onCategoryCreated={(newCat) => {
+                  setCategories((prev) => [...prev, newCat]);
+                }}
+              />
             </div>
-
-            {/* Global Rapid Quick-Add Drawer triggered from Mobile Bottom Nav FAB */}
-            <TransactionDrawer
-              isOpen={quickAddOpen}
-              onClose={() => setQuickAddOpen(false)}
-              onSuccess={() => {
-                // Dispatch event so active page refreshes
-                window.dispatchEvent(new Event('transaction-created'));
-              }}
-              categories={categories}
-              onCategoryCreated={(newCat) => {
-                setCategories((prev) => [...prev, newCat]);
-              }}
-            />
-          </div>
-        ) : (
-          /* Public / Auth Pages (Home, Signin, Signup, Forgot Password) */
-          <main className="flex-1">
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/signin" element={<SignInPage />} />
-              <Route path="/signup" element={<SignUpPage />} />
-              <Route path="/forgotpassword" element={<ForgotPasswordPage />} />
-              <Route path="/reset-password-confirm" element={<ResetPasswordConfirmPage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </main>
-        )}
-      </div>
+          ) : (
+            /* Public / Auth Pages (Home, Signin, Signup, Forgot Password) */
+            <main className="flex-1">
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/signin" element={<SignInPage />} />
+                <Route path="/signup" element={<SignUpPage />} />
+                <Route path="/forgotpassword" element={<ForgotPasswordPage />} />
+                <Route path="/reset-password-confirm" element={<ResetPasswordConfirmPage />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </main>
+          )}
+        </div>
+      </CurrencyProvider>
     </ThemeProvider>
   );
 }
