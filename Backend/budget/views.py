@@ -153,6 +153,7 @@ class DebtViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         with transaction.atomic():
+            reason = serializer.validated_data.pop('reason', '').strip()
             debt = serializer.save(user=self.request.user)
             DebtHistory.objects.create(
                 debt=debt,
@@ -160,7 +161,7 @@ class DebtViewSet(viewsets.ModelViewSet):
                 action='created',
                 new_total_amount=debt.total_amount,
                 new_paid_amount=debt.paid_amount,
-                reason='Initial debt creation',
+                reason=reason or 'Initial debt creation',
                 notes=debt.notes or '',
             )
 
