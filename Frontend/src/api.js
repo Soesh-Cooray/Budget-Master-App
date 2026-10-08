@@ -37,6 +37,35 @@ const resolveApiBase = () => {
 // Root API base
 export const API_BASE = resolveApiBase();
 
+// ── Auth-refresh helpers ─────────────────────────────────────────────────────
+let isRefreshing = false;
+let refreshSubscribers = [];
+
+function subscribeTokenRefresh(cb) {
+  refreshSubscribers.push(cb);
+}
+
+function onRefreshSuccess(newToken) {
+  refreshSubscribers.forEach((cb) => cb(newToken));
+  refreshSubscribers = [];
+}
+
+async function tryRefreshToken() {
+  const refreshToken = localStorage.getItem('refreshToken');
+  if (!refreshToken) throw new Error('No refresh token');
+  const res = await axios.post(`${API_BASE}/auth/jwt/refresh/`, { refresh: refreshToken });
+  return res.data.access;
+}
+
+function redirectToSignIn() {
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  if (typeof window !== 'undefined') {
+    window.location.href = '/signin';
+  }
+}
+// ────────────────────────────────────────────────────────────────────────────
+
 // Budget endpoints live under /api/
 export const apiClient = axios.create({
   baseURL: `${API_BASE}/api/`,
@@ -54,11 +83,56 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor to notify users if backend is experiencing trouble
+// Response interceptor — handles 401 (expired token) and backend trouble
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (typeof window !== 'undefined' && !error.config?.skipGlobalError) {
+  async (error) => {
+    const originalRequest = error.config;
+
+    // --- 401 handler: try to refresh token, then retry ---
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.skipAuthRefresh
+    ) {
+      if (isRefreshing) {
+        // Queue this request until the ongoing refresh finishes
+        return new Promise((resolve, reject) => {
+          subscribeTokenRefresh((newToken) => {
+            originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
+            resolve(apiClient(originalRequest));
+          });
+          // If refresh ultimately fails, reject queued requests too
+          originalRequest._rejectOnRefreshFail = reject;
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const newAccessToken = await tryRefreshToken();
+        localStorage.setItem('accessToken', newAccessToken);
+        apiClient.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
+        originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+        onRefreshSuccess(newAccessToken);
+        isRefreshing = false;
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        // Refresh failed — session is truly expired, kick to sign-in
+        isRefreshing = false;
+        refreshSubscribers.forEach((_, i) => {
+          if (refreshSubscribers[i]?._rejectOnRefreshFail)
+            refreshSubscribers[i]._rejectOnRefreshFail(refreshError);
+        });
+        refreshSubscribers = [];
+        redirectToSignIn();
+        return Promise.reject(refreshError);
+      }
+    }
+
+    // --- General backend-trouble notification ---
+    if (typeof window !== 'undefined' && !originalRequest?.skipGlobalError) {
       const isNetworkError = !error.response || error.code === 'ERR_NETWORK';
       const isServerError = error.response && error.response.status >= 500;
       if (isNetworkError || isServerError) {
@@ -69,6 +143,7 @@ apiClient.interceptors.response.use(
         );
       }
     }
+
     return Promise.reject(error);
   }
 );
