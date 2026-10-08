@@ -194,20 +194,25 @@ export function Dashboard() {
       const currentBalance = totalIncome - totalExpenses - totalSavings;
 
       // Group cashflow for Recharts Area chart
+      // Key by ISO date (yyyy-MM-dd) so sorting works correctly, display as 'MMM d'
       const monthMap = {};
       const addPoints = (arr, key) => {
         arr.forEach((item) => {
-          const m = format(new Date(item.date), 'MMM d');
-          if (!monthMap[m]) {
-            monthMap[m] = { name: m, income: 0, expense: 0 };
+          const isoDate = format(new Date(item.date), 'yyyy-MM-dd');
+          if (!monthMap[isoDate]) {
+            monthMap[isoDate] = { name: format(new Date(item.date), 'MMM d'), income: 0, expense: 0 };
           }
-          monthMap[m][key] += parseFloat(item.amount || 0);
+          monthMap[isoDate][key] += parseFloat(item.amount || 0);
         });
       };
       addPoints(incomes, 'income');
       addPoints(expenses, 'expense');
 
-      const cashflowSeries = Object.values(monthMap);
+      // Sort chronologically by ISO date key before passing to chart
+      const cashflowSeries = Object.entries(monthMap)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([, point]) => point);
+
       if (cashflowSeries.length === 0) {
         cashflowSeries.push({ name: 'Start', income: 0, expense: 0 });
         cashflowSeries.push({ name: 'Current', income: totalIncome, expense: totalExpenses });
