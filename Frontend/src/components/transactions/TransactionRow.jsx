@@ -15,8 +15,8 @@ export function TransactionRow({
 
   // Framer Motion Drag values
   const x = useMotionValue(0);
-  const editOpacity = useTransform(x, [10, 60], [0, 1]);
-  const deleteOpacity = useTransform(x, [-10, -60], [0, 1]);
+  const editOpacity = useTransform(x, [25, 75], [0, 1]);
+  const deleteOpacity = useTransform(x, [-25, -75], [0, 1]);
 
   const handleDragEnd = (_, info) => {
     if (info.offset.x > 80) {
@@ -29,7 +29,7 @@ export function TransactionRow({
   return (
     <>
       {/* Mobile Swipeable Card Item */}
-      <div className="md:hidden relative overflow-hidden rounded-2xl mb-2.5">
+      <div className="md:hidden relative overflow-hidden rounded-2xl mb-2.5 touch-pan-y">
         {/* Background Action Reveals */}
         <div className="absolute inset-0 flex items-center justify-between px-5 pointer-events-none">
           {/* Swipe Right = Edit (Indigo) */}
@@ -57,12 +57,15 @@ export function TransactionRow({
 
         {/* Foreground Draggable Surface */}
         <motion.div
-          style={{ x }}
+          style={{ x, touchAction: 'pan-y' }}
           drag="x"
+          dragDirectionLock
+          dragSnapToOrigin
+          dragMomentum={false}
           dragConstraints={{ left: -100, right: 100 }}
-          dragElastic={0.15}
+          dragElastic={0.2}
           onDragEnd={handleDragEnd}
-          className="relative z-10 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800/80 shadow-sm dark:shadow-md flex items-center justify-between gap-3 active:cursor-grabbing cursor-grab select-none"
+          className="relative z-10 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800/80 shadow-sm dark:shadow-md flex items-center justify-between gap-3 active:cursor-grabbing cursor-grab select-none touch-pan-y"
         >
           {/* Icon & Details */}
           <div className="flex items-center gap-3 min-w-0">

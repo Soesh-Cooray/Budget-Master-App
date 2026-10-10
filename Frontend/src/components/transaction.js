@@ -196,7 +196,7 @@ export function TransactionsPage() {
       {filteredTransactions.length > 0 ? (
         <>
           {/* Mobile Swipe-Optimized Card List */}
-          <div className="md:hidden space-y-2">
+          <div className="md:hidden space-y-2 touch-pan-y">
             <p className="text-xs text-slate-500 dark:text-slate-400 px-1 mb-2">
               💡 Swipe right to edit • Swipe left to delete
             </p>

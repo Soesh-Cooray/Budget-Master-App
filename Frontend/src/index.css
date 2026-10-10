@@ -59,7 +59,7 @@
     @apply bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     min-height: 100vh;
-    overflow-x: hidden;
+    overflow-x: clip;
     transition: background-color 0.2s ease, color 0.2s ease;
   }
 

@@ -38,7 +38,7 @@ export function Header({ title, subtitle, userName }) {
 
   return (
     <>
-      <header className="sticky top-0 z-20 w-full glass-panel border-b border-slate-200/90 dark:border-slate-800/80 bg-white/85 dark:bg-slate-950/85 px-4 sm:px-6 py-3.5 flex items-center justify-between transition-colors duration-200">
+      <header className="sticky top-0 z-30 w-full glass-panel border-b border-slate-200/90 dark:border-slate-800/80 border-t-0 border-x-0 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl px-4 sm:px-6 pt-[max(0.875rem,env(safe-area-inset-top))] pb-3.5 flex items-center justify-between transition-colors duration-200 shadow-sm dark:shadow-slate-950/40">
         {/* Left Side: Brand (on mobile) or Greeting (on desktop) */}
         <div className="flex items-center gap-3">
           {/* Mobile brand indicator */}

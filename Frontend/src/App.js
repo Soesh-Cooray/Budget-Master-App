@@ -187,7 +187,7 @@ function App() {
                 <Header title={getPageTitle()} />
 
                 {/* Scrollable Page Body */}
-                <main className="flex-1 overflow-x-hidden">
+                <main className="flex-1 overflow-x-clip">
                   <Routes>
                     <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                     <Route path="/transaction" element={<ProtectedRoute><TransactionsPage /></ProtectedRoute>} />
